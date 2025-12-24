@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRazorpay } from '@/hooks/useRazorpay';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
   Check,
@@ -16,12 +17,16 @@ import {
   CreditCard,
   Sparkles,
   Calendar,
+  Tag,
 } from 'lucide-react';
 
 const MONTHLY_PRICE = 1499;
 const ANNUAL_PRICE = 14999; // ~17% discount (12 months would be 17,988)
 const ANNUAL_MONTHLY_EQUIVALENT = Math.round(ANNUAL_PRICE / 12);
 const ANNUAL_SAVINGS = (MONTHLY_PRICE * 12) - ANNUAL_PRICE;
+
+const COUPON_CODE = 'PW2025';
+const COUPON_DISCOUNT_PERCENT = 10; // 10% discount
 
 type PlanType = 'monthly' | 'annual';
 
@@ -38,6 +43,31 @@ const Plans = () => {
   const { initiatePayment, isLoading: isPaymentLoading } = useRazorpay();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
+  const applyCoupon = () => {
+    if (couponCode.toUpperCase() === COUPON_CODE) {
+      setCouponApplied(true);
+      setCouponError('');
+      toast.success(`Coupon applied! ${COUPON_DISCOUNT_PERCENT}% discount activated 🎉`);
+    } else {
+      setCouponApplied(false);
+      setCouponError('Invalid coupon code');
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode('');
+    setCouponApplied(false);
+    setCouponError('');
+  };
+
+  const getDiscountedPrice = (price: number) => {
+    if (!couponApplied) return price;
+    return Math.round(price * (1 - COUPON_DISCOUNT_PERCENT / 100));
+  };
 
   const handleSubscribe = async (planType: PlanType) => {
     if (!user) {
@@ -45,7 +75,8 @@ const Plans = () => {
       return;
     }
     
-    const price = planType === 'monthly' ? MONTHLY_PRICE : ANNUAL_PRICE;
+    const basePrice = planType === 'monthly' ? MONTHLY_PRICE : ANNUAL_PRICE;
+    const price = getDiscountedPrice(basePrice);
     const description = planType === 'monthly' ? 'Monthly Gym Membership' : 'Annual Gym Membership';
     
     setActionLoading('subscribe');
@@ -54,7 +85,7 @@ const Plans = () => {
       {
         amount: price,
         name: 'Flexrra',
-        description,
+        description: couponApplied ? `${description} (${COUPON_DISCOUNT_PERCENT}% off with ${COUPON_CODE})` : description,
         prefill: {
           name: user.name,
           email: user.email,
@@ -185,33 +216,85 @@ const Plans = () => {
 
           {/* Plan Toggle */}
           {(!user || subscriptionStatus === 'inactive') && (
-            <div className="mb-8 flex justify-center">
-              <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
-                <button
-                  onClick={() => setSelectedPlan('monthly')}
-                  className={`rounded-full px-6 py-2 text-sm font-medium transition-all ${
-                    selectedPlan === 'monthly'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setSelectedPlan('annual')}
-                  className={`rounded-full px-6 py-2 text-sm font-medium transition-all flex items-center gap-2 ${
-                    selectedPlan === 'annual'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Annual
-                  <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success">
-                    Save ₹{ANNUAL_SAVINGS.toLocaleString()}
-                  </span>
-                </button>
+            <>
+              <div className="mb-8 flex justify-center">
+                <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
+                  <button
+                    onClick={() => setSelectedPlan('monthly')}
+                    className={`rounded-full px-6 py-2 text-sm font-medium transition-all ${
+                      selectedPlan === 'monthly'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setSelectedPlan('annual')}
+                    className={`rounded-full px-6 py-2 text-sm font-medium transition-all flex items-center gap-2 ${
+                      selectedPlan === 'annual'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Annual
+                    <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success">
+                      Save ₹{ANNUAL_SAVINGS.toLocaleString()}
+                    </span>
+                  </button>
+                </div>
               </div>
-            </div>
+
+              {/* Coupon Code Section */}
+              <div className="mb-8 max-w-md mx-auto">
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Tag className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Have a coupon code?</span>
+                  </div>
+                  {!couponApplied ? (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter coupon code"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError('');
+                        }}
+                        className="flex-1 uppercase"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={applyCoupon}
+                        disabled={!couponCode}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-lg bg-success/10 px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-success" />
+                        <span className="text-sm font-medium text-success">
+                          {COUPON_CODE} - {COUPON_DISCOUNT_PERCENT}% off applied!
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeCoupon}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                  {couponError && (
+                    <p className="mt-2 text-sm text-destructive">{couponError}</p>
+                  )}
+                </div>
+              </div>
+            </>
           )}
 
           {/* Plan Cards */}
@@ -227,7 +310,14 @@ const Plans = () => {
                   </div>
                   <h2 className="mb-2 text-xl font-bold text-foreground">Monthly Pass</h2>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-bold text-foreground">₹{MONTHLY_PRICE.toLocaleString()}</span>
+                    {couponApplied ? (
+                      <>
+                        <span className="text-lg text-muted-foreground line-through">₹{MONTHLY_PRICE.toLocaleString()}</span>
+                        <span className="text-3xl font-bold text-foreground">₹{getDiscountedPrice(MONTHLY_PRICE).toLocaleString()}</span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-bold text-foreground">₹{MONTHLY_PRICE.toLocaleString()}</span>
+                    )}
                     <span className="text-muted-foreground">/month</span>
                   </div>
                 </div>
@@ -256,7 +346,7 @@ const Plans = () => {
                       </>
                     ) : (
                       <>
-                        {user ? `Pay ₹${MONTHLY_PRICE.toLocaleString()}` : 'Get Started'}
+                        {user ? `Pay ₹${getDiscountedPrice(MONTHLY_PRICE).toLocaleString()}` : 'Get Started'}
                       </>
                     )}
                   </Button>
@@ -287,11 +377,21 @@ const Plans = () => {
                   </div>
                   <h2 className="mb-2 text-xl font-bold text-foreground">Annual Pass</h2>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-bold text-foreground">₹{ANNUAL_PRICE.toLocaleString()}</span>
+                    {couponApplied ? (
+                      <>
+                        <span className="text-lg text-muted-foreground line-through">₹{ANNUAL_PRICE.toLocaleString()}</span>
+                        <span className="text-3xl font-bold text-foreground">₹{getDiscountedPrice(ANNUAL_PRICE).toLocaleString()}</span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-bold text-foreground">₹{ANNUAL_PRICE.toLocaleString()}</span>
+                    )}
                     <span className="text-muted-foreground">/year</span>
                   </div>
                   <p className="mt-1 text-sm text-success font-medium">
-                    ₹{ANNUAL_MONTHLY_EQUIVALENT}/month • Save ₹{ANNUAL_SAVINGS.toLocaleString()}
+                    {couponApplied 
+                      ? `₹${Math.round(getDiscountedPrice(ANNUAL_PRICE) / 12)}/month • Save ₹${((MONTHLY_PRICE * 12) - getDiscountedPrice(ANNUAL_PRICE)).toLocaleString()}`
+                      : `₹${ANNUAL_MONTHLY_EQUIVALENT}/month • Save ₹${ANNUAL_SAVINGS.toLocaleString()}`
+                    }
                   </p>
                 </div>
 
@@ -324,7 +424,7 @@ const Plans = () => {
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-4 w-4" />
-                        {user ? `Pay ₹${ANNUAL_PRICE.toLocaleString()}` : 'Get Started'}
+                        {user ? `Pay ₹${getDiscountedPrice(ANNUAL_PRICE).toLocaleString()}` : 'Get Started'}
                       </>
                     )}
                   </Button>
