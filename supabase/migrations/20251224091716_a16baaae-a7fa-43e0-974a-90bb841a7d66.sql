@@ -1,0 +1,1 @@
+ALTER TABLE public.subscriptions ALTER COLUMN price SET DEFAULT 1499;
