@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGyms, Gym } from '@/hooks/useGyms';
 import GymCard from '@/components/GymCard';
+import AnimatedCard from '@/components/AnimatedCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Dumbbell, Sparkles } from 'lucide-react';
@@ -145,13 +146,9 @@ const Home = () => {
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredGyms.map((gym, index) => (
-                <div
-                  key={gym._id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
+                <AnimatedCard key={gym._id} delay={index * 100}>
                   <GymCard gym={gym} />
-                </div>
+                </AnimatedCard>
               ))}
             </div>
           </>
