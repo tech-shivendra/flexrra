@@ -17,7 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const SUBSCRIPTION_PRICE = 999;
+const SUBSCRIPTION_PRICE = 1499;
 
 const Plans = () => {
   const navigate = useNavigate();
@@ -228,7 +228,7 @@ const Plans = () => {
                   ) : (
                     <>
                       <Sparkles className="mr-2 h-5 w-5" />
-                      {user ? 'Pay ₹999' : 'Get Started'}
+                      {user ? 'Pay ₹1499' : 'Get Started'}
                     </>
                   )}
                 </Button>
@@ -265,7 +265,7 @@ const Plans = () => {
                 },
                 {
                   q: 'Are there any hidden fees?',
-                  a: 'No hidden fees. ₹999/month is all you pay.',
+                  a: 'No hidden fees. ₹1499/month is all you pay.',
                 },
                 {
                   q: 'Is my payment secure?',

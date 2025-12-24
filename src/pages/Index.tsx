@@ -30,7 +30,7 @@ const Index = () => {
             </h1>
             <p className="mb-8 max-w-xl text-lg text-muted-foreground">
               Access 20+ premium gyms across Delhi, Mumbai & Bangalore with a single
-              ₹999/month membership. Pause anytime.
+              ₹1499/month membership. Pause anytime.
             </p>
 
             {/* CTA Buttons */}
@@ -96,7 +96,7 @@ const Index = () => {
           </p>
           <div className="mx-auto inline-block rounded-2xl border-2 border-primary bg-card p-8 shadow-lg">
             <div className="mb-4 flex items-baseline justify-center gap-1">
-              <span className="text-5xl font-bold text-foreground">₹999</span>
+              <span className="text-5xl font-bold text-foreground">₹1499</span>
               <span className="text-muted-foreground">/month</span>
             </div>
             <ul className="mb-6 space-y-2 text-left">

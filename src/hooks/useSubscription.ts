@@ -23,7 +23,7 @@ export const useSubscription = () => {
         .insert({
           user_id: user.id,
           plan: 'monthly',
-          price: 999,
+          price: 1499,
           status: 'active',
           end_date: endDate.toISOString(),
           razorpay_order_id: razorpayOrderId || null,
