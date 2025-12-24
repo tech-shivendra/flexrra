@@ -44,7 +44,7 @@ const gymImages = [
   'https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1598136490937-f77b0ce520fe?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1593476123561-9516f2097158?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1596357395217-80de13130e92?w=400&h=300&fit=crop',
