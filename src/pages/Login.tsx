@@ -45,7 +45,14 @@ const Login = () => {
       toast.success('Welcome back!');
       navigate('/');
     } else {
-      toast.error(error || 'Login failed');
+      // Handle specific error messages
+      if (error?.includes('Invalid login credentials')) {
+        toast.error('Invalid email or password. Please try again.');
+      } else if (error?.includes('Email not confirmed')) {
+        toast.error('Please verify your email address first.');
+      } else {
+        toast.error(error || 'Login failed');
+      }
     }
   };
 

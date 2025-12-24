@@ -14,7 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      check_ins: {
+        Row: {
+          check_in_time: string
+          check_in_type: string | null
+          gym_address: string | null
+          gym_city: string | null
+          gym_id: string
+          gym_name: string | null
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          check_in_time?: string
+          check_in_type?: string | null
+          gym_address?: string | null
+          gym_city?: string | null
+          gym_id: string
+          gym_name?: string | null
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          check_in_time?: string
+          check_in_type?: string | null
+          gym_address?: string | null
+          gym_city?: string | null
+          gym_id?: string
+          gym_name?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string
+          email: string
+          gender: string | null
+          home_area: string | null
+          id: string
+          name: string
+          phone: string | null
+          subscription_end_date: string | null
+          subscription_start_date: string | null
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          email: string
+          gender?: string | null
+          home_area?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          email?: string
+          gender?: string | null
+          home_area?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          paused_at: string | null
+          plan: string
+          price: number
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          resumed_at: string | null
+          start_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          paused_at?: string | null
+          plan?: string
+          price?: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          resumed_at?: string | null
+          start_date?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          paused_at?: string | null
+          plan?: string
+          price?: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          resumed_at?: string | null
+          start_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

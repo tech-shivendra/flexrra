@@ -21,8 +21,6 @@ export interface Gym {
   approvedByAdmin: boolean;
 }
 
-const API_URL = 'http://localhost:5000/api';
-
 // Mock data for development
 const mockGyms: Gym[] = [
   {
@@ -178,7 +176,7 @@ const mockGyms: Gym[] = [
 ];
 
 export const useGyms = () => {
-  const { token } = useAuth();
+  const { session } = useAuth();
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,45 +185,22 @@ export const useGyms = () => {
     setIsLoading(true);
     setError(null);
     
-    try {
-      const url = city ? `${API_URL}/gyms?city=${city}` : `${API_URL}/gyms`;
-      const response = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch gyms');
-      }
-      
-      const data = await response.json();
-      setGyms(data);
-    } catch (err) {
-      // Fallback to mock data if API fails
-      const filteredGyms = city 
-        ? mockGyms.filter(gym => gym.city.toLowerCase() === city.toLowerCase())
-        : mockGyms;
-      setGyms(filteredGyms);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
+    // Using mock data for now - can be replaced with API call later
+    const filteredGyms = city 
+      ? mockGyms.filter(gym => gym.city.toLowerCase() === city.toLowerCase())
+      : mockGyms;
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setGyms(filteredGyms);
+    setIsLoading(false);
+  }, []);
 
   const getGymById = useCallback(async (id: string): Promise<Gym | null> => {
-    try {
-      const response = await fetch(`${API_URL}/gyms/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch gym');
-      }
-      
-      return await response.json();
-    } catch (err) {
-      // Fallback to mock data
-      return mockGyms.find(gym => gym._id === id) || null;
-    }
-  }, [token]);
+    // Using mock data
+    return mockGyms.find(gym => gym._id === id) || null;
+  }, []);
 
   return { gyms, isLoading, error, fetchGyms, getGymById };
 };

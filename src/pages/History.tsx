@@ -77,7 +77,7 @@ const History = () => {
             <div className="space-y-3">
               {history.map((checkIn, index) => (
                 <div
-                  key={checkIn._id}
+                  key={checkIn.id}
                   className="rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md animate-slide-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
@@ -88,12 +88,12 @@ const History = () => {
                       </div>
                       <div>
                         <h4 className="font-semibold text-foreground">
-                          {checkIn.gymDetails?.name || 'Gym Workout'}
+                          {checkIn.gym_name || 'Gym Workout'}
                         </h4>
-                        {checkIn.gymDetails?.address && (
+                        {checkIn.gym_address && (
                           <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-3 w-3" />
-                            {checkIn.gymDetails.address}
+                            {checkIn.gym_address}
                           </div>
                         )}
                       </div>
@@ -101,11 +101,11 @@ const History = () => {
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-sm font-medium text-foreground">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(checkIn.checkInTime)}
+                        {formatDate(checkIn.check_in_time)}
                       </div>
                       <div className="mt-1 flex items-center justify-end gap-1 text-sm text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        {formatTime(checkIn.checkInTime)}
+                        {formatTime(checkIn.check_in_time)}
                       </div>
                     </div>
                   </div>

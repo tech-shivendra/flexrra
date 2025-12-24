@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/hooks/useSubscription';
 
 declare global {
   interface Window {
@@ -22,7 +23,8 @@ export interface RazorpayOptions {
 }
 
 export const useRazorpay = () => {
-  const { user, updateUser } = useAuth();
+  const { user, session, updateSubscription } = useAuth();
+  const { createSubscription } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,9 +50,9 @@ export const useRazorpay = () => {
       body: {
         amount,
         currency: 'INR',
-        receipt: `flexrra_${user?._id || 'guest'}_${Date.now()}`,
+        receipt: `flexrra_${user?.id || 'guest'}_${Date.now()}`,
         notes: {
-          user_id: user?._id,
+          user_id: user?.id,
           plan: 'monthly',
         },
       },
@@ -80,7 +82,7 @@ export const useRazorpay = () => {
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-        user_id: user?._id,
+        user_id: user?.id,
         plan_type: 'monthly',
       },
     });
@@ -145,15 +147,11 @@ export const useRazorpay = () => {
             
             console.log('Payment verified:', verificationResult);
             
-            // Update user subscription status
-            if (user) {
-              updateUser({
-                ...user,
-                subscriptionStatus: 'active',
-                subscriptionStartDate: verificationResult.subscription.startDate,
-                subscriptionEndDate: verificationResult.subscription.endDate,
-              });
-            }
+            // Update subscription in database
+            await createSubscription(
+              response.razorpay_order_id,
+              response.razorpay_payment_id
+            );
             
             onSuccess({
               ...response,
@@ -162,6 +160,8 @@ export const useRazorpay = () => {
           } catch (verifyError: any) {
             console.error('Verification failed:', verifyError);
             onFailure({ error: verifyError.message });
+          } finally {
+            setIsLoading(false);
           }
         },
         modal: {

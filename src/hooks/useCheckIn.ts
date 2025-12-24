@@ -1,35 +1,32 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-
-const API_URL = 'http://localhost:5000/api';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CheckIn {
-  _id: string;
-  userId: string;
-  gymId: string;
-  checkInTime: string;
-  checkInType: 'qr' | 'manual';
+  id: string;
+  user_id: string;
+  gym_id: string;
+  gym_name: string | null;
+  gym_address: string | null;
+  gym_city: string | null;
+  check_in_time: string;
+  check_in_type: 'qr' | 'manual';
   status: 'checkedIn' | 'checkedOut';
-  gymDetails?: {
-    name: string;
-    address: string;
-    city: string;
-  };
 }
 
 export const useCheckIn = () => {
-  const { user, token } = useAuth();
+  const { user, session } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<CheckIn[]>([]);
 
-  const checkIn = async (gymId: string, gymName: string) => {
-    if (!user || !token) return { success: false, error: 'Not authenticated' };
+  const checkIn = async (gymId: string, gymName: string, gymAddress?: string, gymCity?: string) => {
+    if (!user || !session) return { success: false, error: 'Not authenticated' };
     
     // Check if already checked in today at this gym
     const today = new Date().toDateString();
     const existingCheckIn = history.find(
-      (c) => c.gymId === gymId && new Date(c.checkInTime).toDateString() === today
+      (c) => c.gym_id === gymId && new Date(c.check_in_time).toDateString() === today
     );
     
     if (existingCheckIn) {
@@ -40,89 +37,60 @@ export const useCheckIn = () => {
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/checkins`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId: user._id, gymId }),
-      });
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to check in');
+      const { data, error: insertError } = await supabase
+        .from('check_ins')
+        .insert({
+          user_id: user.id,
+          gym_id: gymId,
+          gym_name: gymName,
+          gym_address: gymAddress || null,
+          gym_city: gymCity || null,
+          check_in_type: 'manual',
+          status: 'checkedIn',
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        throw new Error(insertError.message);
       }
-      
-      const data = await response.json();
-      
+
       // Add to local history
-      const newCheckIn: CheckIn = {
-        _id: data.checkIn?._id || Date.now().toString(),
-        userId: user._id,
-        gymId,
-        checkInTime: new Date().toISOString(),
-        checkInType: 'manual',
-        status: 'checkedIn',
-        gymDetails: {
-          name: gymName,
-          address: '',
-          city: '',
-        },
-      };
-      
-      setHistory((prev) => [newCheckIn, ...prev]);
+      setHistory((prev) => [data as CheckIn, ...prev]);
       
       return { success: true };
-    } catch (err) {
-      // Mock success for development
-      const newCheckIn: CheckIn = {
-        _id: Date.now().toString(),
-        userId: user._id,
-        gymId,
-        checkInTime: new Date().toISOString(),
-        checkInType: 'manual',
-        status: 'checkedIn',
-        gymDetails: {
-          name: gymName,
-          address: '',
-          city: '',
-        },
-      };
-      
-      setHistory((prev) => [newCheckIn, ...prev]);
-      return { success: true };
+    } catch (err: any) {
+      setError(err.message);
+      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchHistory = useCallback(async () => {
-    if (!user || !token) return;
+    if (!user || !session) return;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/checkins/history/${user._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch check-in history');
+      const { data, error: fetchError } = await supabase
+        .from('check_ins')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('check_in_time', { ascending: false });
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
       }
-      
-      const data = await response.json();
-      setHistory(data);
-    } catch (err) {
-      // Keep existing history or empty array
-      setError('Could not load history');
+
+      setHistory(data as CheckIn[]);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user, token]);
+  }, [user, session]);
 
   const getWorkoutsThisMonth = () => {
     const now = new Date();
@@ -130,7 +98,7 @@ export const useCheckIn = () => {
     const currentYear = now.getFullYear();
     
     return history.filter((checkIn) => {
-      const checkInDate = new Date(checkIn.checkInTime);
+      const checkInDate = new Date(checkIn.check_in_time);
       return (
         checkInDate.getMonth() === currentMonth &&
         checkInDate.getFullYear() === currentYear

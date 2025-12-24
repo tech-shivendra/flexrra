@@ -55,7 +55,7 @@ const GymDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getGymById } = useGyms();
-  const { checkIn, isLoading: isCheckingIn, getLastCheckIn, history } = useCheckIn();
+  const { checkIn, isLoading: isCheckingIn, history, fetchHistory } = useCheckIn();
   
   const [gym, setGym] = useState<Gym | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,20 +71,26 @@ const GymDetail = () => {
     loadGym();
   }, [id, getGymById]);
 
-  const hasActiveSubscription = user?.subscriptionStatus === 'active';
+  useEffect(() => {
+    if (user) {
+      fetchHistory();
+    }
+  }, [user, fetchHistory]);
+
+  const hasActiveSubscription = user?.subscription_status === 'active';
   
   const hasCheckedInToday = () => {
     if (!id) return false;
     const today = new Date().toDateString();
     return history.some(
-      (c) => c.gymId === id && new Date(c.checkInTime).toDateString() === today
+      (c) => c.gym_id === id && new Date(c.check_in_time).toDateString() === today
     );
   };
 
   const handleCheckIn = async () => {
     if (!gym) return;
     
-    const result = await checkIn(gym._id, gym.name);
+    const result = await checkIn(gym._id, gym.name, gym.address, gym.city);
     if (result.success) {
       toast.success('Check-in successful! Enjoy your workout! 💪');
     } else {

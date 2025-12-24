@@ -1,154 +1,126 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-
-const API_URL = 'http://localhost:5000/api';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useSubscription = () => {
-  const { user, token, updateUser } = useAuth();
+  const { user, session, updateSubscription, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createSubscription = async () => {
-    if (!user || !token) return { success: false, error: 'Not authenticated' };
+  const createSubscription = async (razorpayOrderId?: string, razorpayPaymentId?: string) => {
+    if (!user || !session) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/subscriptions/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId: user._id }),
-      });
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 30);
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to create subscription');
+      // Insert subscription record
+      const { error: insertError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          plan: 'monthly',
+          price: 999,
+          status: 'active',
+          end_date: endDate.toISOString(),
+          razorpay_order_id: razorpayOrderId || null,
+          razorpay_payment_id: razorpayPaymentId || null,
+        });
+
+      if (insertError) {
+        throw new Error(insertError.message);
       }
-      
-      const data = await response.json();
-      
-      // Update user state with new subscription info
-      const updatedUser = {
-        ...user,
-        subscriptionStatus: 'active' as const,
-        subscriptionStartDate: data.subscription.startDate,
-        subscriptionEndDate: data.subscription.endDate,
-      };
-      updateUser(updatedUser);
+
+      // Update profile subscription status
+      await updateSubscription('active', endDate.toISOString());
       
       return { success: true };
     } catch (err: any) {
-      // Mock success for development
-      const mockEndDate = new Date();
-      mockEndDate.setDate(mockEndDate.getDate() + 30);
-      
-      const updatedUser = {
-        ...user,
-        subscriptionStatus: 'active' as const,
-        subscriptionStartDate: new Date().toISOString(),
-        subscriptionEndDate: mockEndDate.toISOString(),
-      };
-      updateUser(updatedUser);
-      
-      return { success: true };
+      setError(err.message);
+      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
   const pauseSubscription = async () => {
-    if (!user || !token) return { success: false, error: 'Not authenticated' };
+    if (!user || !session) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/subscriptions/pause`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId: user._id }),
-      });
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to pause subscription');
+      // Update the latest active subscription
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'paused',
+          paused_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (updateError) {
+        throw new Error(updateError.message);
       }
-      
-      const updatedUser = { ...user, subscriptionStatus: 'paused' as const };
-      updateUser(updatedUser);
+
+      await updateSubscription('paused');
       
       return { success: true };
-    } catch (err) {
-      // Mock success for development
-      const updatedUser = { ...user, subscriptionStatus: 'paused' as const };
-      updateUser(updatedUser);
-      return { success: true };
+    } catch (err: any) {
+      setError(err.message);
+      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
   const resumeSubscription = async () => {
-    if (!user || !token) return { success: false, error: 'Not authenticated' };
+    if (!user || !session) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/subscriptions/resume`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId: user._id }),
-      });
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 30);
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to resume subscription');
+      // Update the latest paused subscription
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'active',
+          resumed_at: new Date().toISOString(),
+          end_date: endDate.toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('status', 'paused')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (updateError) {
+        throw new Error(updateError.message);
       }
-      
-      const data = await response.json();
-      
-      const mockEndDate = new Date();
-      mockEndDate.setDate(mockEndDate.getDate() + 30);
-      
-      const updatedUser = {
-        ...user,
-        subscriptionStatus: 'active' as const,
-        subscriptionEndDate: data.subscription?.endDate || mockEndDate.toISOString(),
-      };
-      updateUser(updatedUser);
+
+      await updateSubscription('active', endDate.toISOString());
       
       return { success: true };
-    } catch (err) {
-      // Mock success for development
-      const mockEndDate = new Date();
-      mockEndDate.setDate(mockEndDate.getDate() + 30);
-      
-      const updatedUser = {
-        ...user,
-        subscriptionStatus: 'active' as const,
-        subscriptionEndDate: mockEndDate.toISOString(),
-      };
-      updateUser(updatedUser);
-      return { success: true };
+    } catch (err: any) {
+      setError(err.message);
+      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
   return {
-    subscriptionStatus: user?.subscriptionStatus || 'inactive',
-    subscriptionEndDate: user?.subscriptionEndDate,
+    subscriptionStatus: user?.subscription_status || 'inactive',
+    subscriptionEndDate: user?.subscription_end_date,
     isLoading,
     error,
     createSubscription,

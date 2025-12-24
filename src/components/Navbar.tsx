@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Home, CreditCard, User, History, Menu, X, LogOut, Dumbbell } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -10,8 +11,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
+    toast.success('Logged out');
     navigate('/login');
     setIsMenuOpen(false);
   };
@@ -30,7 +32,6 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
             <Dumbbell className="h-5 w-5 text-primary-foreground" />
@@ -38,7 +39,6 @@ const Navbar = () => {
           <span className="text-xl font-bold text-gradient">Flexrra</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map(({ to, label, icon: Icon }) => (
             <Link
@@ -56,7 +56,6 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* User Info & Logout - Desktop */}
         <div className="hidden items-center gap-4 md:flex">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
@@ -69,7 +68,6 @@ const Navbar = () => {
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground hover:bg-accent md:hidden"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -78,7 +76,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="absolute left-0 right-0 top-16 border-b border-border bg-card p-4 shadow-lg md:hidden animate-fade-in">
           <div className="flex flex-col gap-2">
