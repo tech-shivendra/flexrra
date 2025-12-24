@@ -151,6 +151,7 @@ export type Database = {
           created_at: string
           end_date: string
           id: string
+          pause_count: number
           paused_at: string | null
           plan: string
           price: number
@@ -167,6 +168,7 @@ export type Database = {
           created_at?: string
           end_date: string
           id?: string
+          pause_count?: number
           paused_at?: string | null
           plan?: string
           price?: number
@@ -183,6 +185,7 @@ export type Database = {
           created_at?: string
           end_date?: string
           id?: string
+          pause_count?: number
           paused_at?: string | null
           plan?: string
           price?: number
