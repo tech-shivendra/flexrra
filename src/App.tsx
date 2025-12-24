@@ -13,6 +13,7 @@ import Plans from "@/pages/Plans";
 import Profile from "@/pages/Profile";
 import History from "@/pages/History";
 import ScanCheckIn from "@/pages/ScanCheckIn";
+import AdminCoupons from "@/pages/AdminCoupons";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -143,6 +144,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <ScanCheckIn />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/coupons"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AdminCoupons />
             </AppLayout>
           </ProtectedRoute>
         }
