@@ -3,12 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useGyms, Gym } from '@/hooks/useGyms';
 import GymCard from '@/components/GymCard';
 import AnimatedCard from '@/components/AnimatedCard';
+import StatsCounter from '@/components/StatsCounter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Loader2, Dumbbell, Sparkles } from 'lucide-react';
+import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 
 const cities = ['All', 'Lucknow'];
+
+const stats = [
+  { icon: Building2, end: 20, suffix: '+', label: 'Partner Gyms' },
+  { icon: Users, end: 1000, suffix: '+', label: 'Active Members' },
+  { icon: Trophy, end: 50, suffix: '+', label: 'Expert Trainers' },
+  { icon: Clock, end: 24, suffix: '/7', label: 'Access Hours' },
+];
 
 const Home = () => {
   const navigate = useNavigate();
@@ -117,6 +125,13 @@ const Home = () => {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="bg-card/50 border-y border-border py-12">
+        <div className="container mx-auto px-4">
+          <StatsCounter stats={stats} />
         </div>
       </div>
 
