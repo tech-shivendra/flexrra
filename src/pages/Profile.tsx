@@ -24,6 +24,9 @@ const Profile = () => {
   const {
     subscriptionStatus,
     subscriptionEndDate,
+    subscriptionPlan,
+    remainingPauses,
+    canPause,
     isLoading,
     pauseSubscription,
     resumeSubscription,
@@ -128,19 +131,27 @@ const Profile = () => {
 
                 <div className="flex gap-3">
                   {subscriptionStatus === 'active' ? (
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={handlePause}
-                      disabled={isLoading || actionLoading !== null}
-                    >
-                      {actionLoading === 'pause' ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Pause className="mr-2 h-4 w-4" />
-                      )}
-                      Pause
-                    </Button>
+                    <div className="flex-1 space-y-2">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handlePause}
+                        disabled={isLoading || actionLoading !== null || !canPause}
+                      >
+                        {actionLoading === 'pause' ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Pause className="mr-2 h-4 w-4" />
+                        )}
+                        Pause
+                      </Button>
+                      <p className="text-xs text-center text-muted-foreground">
+                        {remainingPauses > 0 
+                          ? `${remainingPauses} pause${remainingPauses > 1 ? 's' : ''} remaining`
+                          : 'No pauses remaining'
+                        }
+                      </p>
+                    </div>
                   ) : (
                     <Button
                       variant="gradient"

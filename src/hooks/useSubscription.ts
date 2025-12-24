@@ -1,11 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+
+interface SubscriptionData {
+  plan: string;
+  pause_count: number;
+}
 
 export const useSubscription = () => {
   const { user, session, updateSubscription, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
+
+  // Fetch current subscription data
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('plan, pause_count')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'paused'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) {
+        setSubscriptionData(data);
+      }
+    };
+    
+    fetchSubscription();
+  }, [user]);
+
+  const getMaxPauses = (plan: string) => {
+    return plan === 'annual' ? 3 : 1;
+  };
+
+  const getRemainingPauses = () => {
+    if (!subscriptionData) return 0;
+    const maxPauses = getMaxPauses(subscriptionData.plan);
+    return Math.max(0, maxPauses - subscriptionData.pause_count);
+  };
+
+  const canPause = () => {
+    if (!subscriptionData) return false;
+    return getRemainingPauses() > 0;
+  };
 
   const createSubscription = async (
     razorpayOrderId?: string, 
@@ -57,16 +100,28 @@ export const useSubscription = () => {
   const pauseSubscription = async () => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
     
+    // Check if pause limit is reached
+    if (!canPause()) {
+      const maxPauses = subscriptionData?.plan === 'annual' ? 3 : 1;
+      return { 
+        success: false, 
+        error: `You've reached the maximum ${maxPauses} pause${maxPauses > 1 ? 's' : ''} for your ${subscriptionData?.plan} plan`
+      };
+    }
+    
     setIsLoading(true);
     setError(null);
     
     try {
-      // Update the latest active subscription
+      // Update the latest active subscription with incremented pause_count
+      const newPauseCount = (subscriptionData?.pause_count || 0) + 1;
+      
       const { error: updateError } = await supabase
         .from('subscriptions')
         .update({
           status: 'paused',
           paused_at: new Date().toISOString(),
+          pause_count: newPauseCount,
         })
         .eq('user_id', user.id)
         .eq('status', 'active')
@@ -77,6 +132,8 @@ export const useSubscription = () => {
         throw new Error(updateError.message);
       }
 
+      // Update local state
+      setSubscriptionData(prev => prev ? { ...prev, pause_count: newPauseCount } : null);
       await updateSubscription('paused');
       
       return { success: true };
@@ -129,6 +186,10 @@ export const useSubscription = () => {
   return {
     subscriptionStatus: user?.subscription_status || 'inactive',
     subscriptionEndDate: user?.subscription_end_date,
+    subscriptionPlan: subscriptionData?.plan,
+    pauseCount: subscriptionData?.pause_count || 0,
+    remainingPauses: getRemainingPauses(),
+    canPause: canPause(),
     isLoading,
     error,
     createSubscription,
