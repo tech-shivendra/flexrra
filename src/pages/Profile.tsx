@@ -15,7 +15,6 @@ import {
   LogOut,
   Loader2,
   Edit,
-  Check,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -60,13 +59,13 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success('Logged out successfully');
     navigate('/login');
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -209,7 +208,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="font-medium text-foreground">{user.phone}</p>
+                  <p className="font-medium text-foreground">{user.phone || 'Not provided'}</p>
                 </div>
               </div>
 
@@ -219,7 +218,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Home Area</p>
-                  <p className="font-medium text-foreground">{user.homeArea}</p>
+                  <p className="font-medium text-foreground">{user.home_area || 'Not provided'}</p>
                 </div>
               </div>
 
@@ -230,7 +229,7 @@ const Profile = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Age</p>
-                    <p className="font-medium text-foreground">{user.age} years</p>
+                    <p className="font-medium text-foreground">{user.age ? `${user.age} years` : 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -240,7 +239,7 @@ const Profile = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Gender</p>
-                    <p className="font-medium text-foreground capitalize">{user.gender}</p>
+                    <p className="font-medium text-foreground capitalize">{user.gender || 'Not provided'}</p>
                   </div>
                 </div>
               </div>

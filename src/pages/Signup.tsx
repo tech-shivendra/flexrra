@@ -81,7 +81,7 @@ const Signup = () => {
     setIsLoading(false);
 
     if (success) {
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! Welcome to Flexrra!');
       navigate('/');
     } else {
       toast.error(error || 'Signup failed');
