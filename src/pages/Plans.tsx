@@ -39,6 +39,7 @@ const Plans = () => {
     subscriptionStatus,
     subscriptionEndDate,
     isLoading,
+    createSubscription,
     pauseSubscription,
     resumeSubscription,
   } = useSubscription();
@@ -84,6 +85,18 @@ const Plans = () => {
     const description = planType === 'monthly' ? 'Monthly Gym Membership' : 'Annual Gym Membership';
     
     setActionLoading('subscribe');
+    
+    // Handle 100% discount (free subscription) - bypass payment
+    if (price === 0) {
+      const result = await createSubscription(undefined, undefined, planType, 0);
+      if (result.success) {
+        toast.success('Subscription activated! Welcome to Flexrra 🎉');
+      } else {
+        toast.error(result.error || 'Failed to activate subscription');
+      }
+      setActionLoading(null);
+      return;
+    }
     
     initiatePayment(
       {
