@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGyms, Gym } from '@/hooks/useGyms';
 import GymCard from '@/components/GymCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { Search, MapPin, Loader2, Dumbbell, Sparkles } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 
 const cities = ['All', 'Lucknow'];
 
 const Home = () => {
+  const navigate = useNavigate();
   const { gyms, isLoading, fetchGyms } = useGyms();
   const [selectedCity, setSelectedCity] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,12 +50,36 @@ const Home = () => {
         <div className="relative z-10 pb-12 pt-10">
           <div className="container mx-auto px-4">
             <div className="mb-8 text-center">
-              <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
+              <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm animate-fade-in">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Premium Fitness Network
+              </p>
+              <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl lg:text-6xl animate-fade-in" style={{ animationDelay: '100ms' }}>
                 Find Your <span className="text-gradient">Perfect Gym</span>
               </h1>
-              <p className="text-lg text-white/80">
-                Access 20+ premium gyms with one subscription
+              <p className="mb-8 text-lg text-white/80 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
+                Access 20+ premium gyms with one subscription. Work out anywhere, anytime.
               </p>
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+                <Button 
+                  size="lg" 
+                  className="rounded-full px-8 shadow-lg hover:scale-105 transition-transform"
+                  onClick={() => navigate('/plans')}
+                >
+                  <Dumbbell className="mr-2 h-5 w-5" />
+                  Get Started
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="rounded-full px-8 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm hover:scale-105 transition-transform"
+                  onClick={() => document.getElementById('gym-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Explore Gyms
+                </Button>
+              </div>
             </div>
 
             {/* Search Bar */}
@@ -94,7 +120,7 @@ const Home = () => {
       </div>
 
       {/* Gym Grid */}
-      <div className="container mx-auto px-4 py-8">
+      <div id="gym-grid" className="container mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
