@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { Dumbbell, Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2 } from 'lucide-react';
+import { Dumbbell, Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -23,6 +25,8 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 
+type SignupStep = 'form' | 'otp' | 'success';
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -35,7 +39,11 @@ const Signup = () => {
     homeArea: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingOTP, setIsSendingOTP] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState<SignupStep>('form');
+  const [otp, setOtp] = useState('');
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
@@ -44,11 +52,84 @@ const Signup = () => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
+    // Reset phone verification if phone number changes
+    if (field === 'phone' && isPhoneVerified) {
+      setIsPhoneVerified(false);
+    }
+  };
+
+  const sendOTP = async () => {
+    // Validate phone first
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setErrors((prev) => ({ ...prev, phone: 'Phone number must be exactly 10 digits' }));
+      return;
+    }
+
+    setIsSendingOTP(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phone: formData.phone },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setStep('otp');
+        toast.success('OTP sent to your phone number');
+      } else {
+        toast.error(data?.error || 'Failed to send OTP');
+      }
+    } catch (error: any) {
+      console.error('Error sending OTP:', error);
+      toast.error(error.message || 'Failed to send OTP');
+    } finally {
+      setIsSendingOTP(false);
+    }
+  };
+
+  const verifyOTP = async () => {
+    if (otp.length !== 6) {
+      toast.error('Please enter the complete 6-digit OTP');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: { phone: formData.phone, otp },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setIsPhoneVerified(true);
+        setStep('form');
+        toast.success('Phone number verified successfully!');
+      } else {
+        toast.error(data?.error || 'Invalid OTP');
+      }
+    } catch (error: any) {
+      console.error('Error verifying OTP:', error);
+      toast.error(error.message || 'Failed to verify OTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    setOtp('');
+    await sendOTP();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Check if phone is verified
+    if (!isPhoneVerified) {
+      toast.error('Please verify your phone number first');
+      return;
+    }
 
     const dataToValidate = {
       ...formData,
@@ -87,6 +168,284 @@ const Signup = () => {
       toast.error(error || 'Signup failed');
     }
   };
+
+  const renderOTPStep = () => (
+    <div className="space-y-6">
+      <Button
+        variant="ghost"
+        onClick={() => setStep('form')}
+        className="mb-4 -ml-2"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to form
+      </Button>
+
+      <div className="text-center">
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Verify your phone</h2>
+        <p className="text-muted-foreground">
+          We've sent a 6-digit OTP to <span className="font-medium text-foreground">+91 {formData.phone}</span>
+        </p>
+      </div>
+
+      <div className="flex justify-center">
+        <InputOTP
+          value={otp}
+          onChange={(value) => setOtp(value)}
+          maxLength={6}
+        >
+          <InputOTPGroup>
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+            <InputOTPSlot index={3} />
+            <InputOTPSlot index={4} />
+            <InputOTPSlot index={5} />
+          </InputOTPGroup>
+        </InputOTP>
+      </div>
+
+      <Button
+        onClick={verifyOTP}
+        variant="gradient"
+        size="lg"
+        className="w-full"
+        disabled={isLoading || otp.length !== 6}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Verifying...
+          </>
+        ) : (
+          'Verify OTP'
+        )}
+      </Button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Didn't receive the OTP?{' '}
+        <button
+          type="button"
+          onClick={resendOTP}
+          disabled={isSendingOTP}
+          className="font-semibold text-primary hover:underline disabled:opacity-50"
+        >
+          {isSendingOTP ? 'Sending...' : 'Resend OTP'}
+        </button>
+      </p>
+    </div>
+  );
+
+  const renderFormStep = () => (
+    <>
+      <div className="mb-6 text-center lg:text-left">
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Create your account</h2>
+        <p className="text-muted-foreground">Join thousands of fitness enthusiasts</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="name"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
+            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+          </div>
+
+          {/* Phone with OTP verification */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  placeholder="10 digit number"
+                  value={formData.phone}
+                  onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  className={`h-11 pl-10 ${isPhoneVerified ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}`}
+                  disabled={isLoading || isPhoneVerified}
+                />
+                {isPhoneVerified && (
+                  <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
+                )}
+              </div>
+              {!isPhoneVerified && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={sendOTP}
+                  disabled={isSendingOTP || formData.phone.length !== 10}
+                  className="h-11 whitespace-nowrap"
+                >
+                  {isSendingOTP ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Send OTP'
+                  )}
+                </Button>
+              )}
+            </div>
+            {isPhoneVerified && (
+              <p className="text-xs text-green-600">Phone number verified</p>
+            )}
+            {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+          </div>
+
+          {/* Home Area */}
+          <div className="space-y-2">
+            <Label htmlFor="homeArea">City / Area</Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="homeArea"
+                placeholder="Delhi, Mumbai..."
+                value={formData.homeArea}
+                onChange={(e) => handleChange('homeArea', e.target.value)}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
+            {errors.homeArea && <p className="text-xs text-destructive">{errors.homeArea}</p>}
+          </div>
+
+          {/* Age */}
+          <div className="space-y-2">
+            <Label htmlFor="age">Age</Label>
+            <Input
+              id="age"
+              type="number"
+              placeholder="25"
+              value={formData.age}
+              onChange={(e) => handleChange('age', e.target.value)}
+              className="h-11"
+              min="16"
+              max="100"
+              disabled={isLoading}
+            />
+            {errors.age && <p className="text-xs text-destructive">{errors.age}</p>}
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-2">
+            <Label>Gender</Label>
+            <Select
+              value={formData.gender}
+              onValueChange={(value) => handleChange('gender', value)}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.gender && <p className="text-xs text-destructive">{errors.gender}</p>}
+          </div>
+
+          {/* Password */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Min 6 characters"
+                value={formData.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
+            {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repeat password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
+            {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          variant="gradient"
+          size="lg"
+          className="mt-6 w-full"
+          disabled={isLoading || !isPhoneVerified}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            <>
+              Create Account
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </>
+          )}
+        </Button>
+
+        {!isPhoneVerified && (
+          <p className="text-center text-sm text-amber-600 dark:text-amber-400">
+            Please verify your phone number to create an account
+          </p>
+        )}
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Already have an account?{' '}
+        <Link to="/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </>
+  );
 
   return (
     <div className="flex min-h-screen">
@@ -133,184 +492,7 @@ const Signup = () => {
             <span className="text-2xl font-bold text-gradient">Flexrra</span>
           </div>
 
-          <div className="mb-6 text-center lg:text-left">
-            <h2 className="mb-2 text-2xl font-bold text-foreground">Create your account</h2>
-            <p className="text-muted-foreground">Join thousands of fitness enthusiasts</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-              </div>
-
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    placeholder="10 digit number"
-                    value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
-              </div>
-
-              {/* Home Area */}
-              <div className="space-y-2">
-                <Label htmlFor="homeArea">City / Area</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="homeArea"
-                    placeholder="Delhi, Mumbai..."
-                    value={formData.homeArea}
-                    onChange={(e) => handleChange('homeArea', e.target.value)}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.homeArea && <p className="text-xs text-destructive">{errors.homeArea}</p>}
-              </div>
-
-              {/* Age */}
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  placeholder="25"
-                  value={formData.age}
-                  onChange={(e) => handleChange('age', e.target.value)}
-                  className="h-11"
-                  min="16"
-                  max="100"
-                  disabled={isLoading}
-                />
-                {errors.age && <p className="text-xs text-destructive">{errors.age}</p>}
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select
-                  value={formData.gender}
-                  onValueChange={(value) => handleChange('gender', value)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.gender && <p className="text-xs text-destructive">{errors.gender}</p>}
-              </div>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Min 6 characters"
-                    value={formData.password}
-                    onChange={(e) => handleChange('password', e.target.value)}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-              </div>
-
-              {/* Confirm Password */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Repeat password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                    className="h-11 pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="gradient"
-              size="lg"
-              className="mt-6 w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                <>
-                  Create Account
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
+          {step === 'otp' ? renderOTPStep() : renderFormStep()}
         </div>
       </div>
     </div>
