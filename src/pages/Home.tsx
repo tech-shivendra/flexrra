@@ -4,6 +4,7 @@ import GymCard from '@/components/GymCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2 } from 'lucide-react';
+import heroVideo from '@/assets/gym-hero-video.mp4';
 
 const cities = ['All', 'Lucknow'];
 
@@ -26,46 +27,68 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="gradient-hero pb-8 pt-6">
-        <div className="container mx-auto px-4">
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-foreground md:text-4xl">
-              Find Your <span className="text-gradient">Perfect Gym</span>
-            </h1>
-            <p className="text-muted-foreground">
-              Access 20+ premium gyms with one subscription
-            </p>
-          </div>
+      {/* Hero Section with Video */}
+      <div className="relative overflow-hidden">
+        {/* Video Background */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source src={heroVideo} type="video/mp4" />
+          </video>
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+        </div>
 
-          {/* Search Bar */}
-          <div className="mx-auto mb-6 max-w-2xl">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search gyms by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 rounded-xl border-border bg-card pl-12 shadow-sm focus:border-primary"
-              />
+        {/* Hero Content */}
+        <div className="relative z-10 pb-12 pt-10">
+          <div className="container mx-auto px-4">
+            <div className="mb-8 text-center">
+              <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
+                Find Your <span className="text-gradient">Perfect Gym</span>
+              </h1>
+              <p className="text-lg text-white/80">
+                Access 20+ premium gyms with one subscription
+              </p>
             </div>
-          </div>
 
-          {/* City Filters */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {cities.map((city) => (
-              <Button
-                key={city}
-                variant={selectedCity === city ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCity(city)}
-                className="rounded-full"
-              >
-                {city !== 'All' && <MapPin className="mr-1 h-3 w-3" />}
-                {city}
-              </Button>
-            ))}
+            {/* Search Bar */}
+            <div className="mx-auto mb-6 max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search gyms by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-14 rounded-xl border-white/20 bg-white/10 pl-12 text-white placeholder:text-white/60 shadow-lg backdrop-blur-md focus:border-primary focus:bg-white/20"
+                />
+              </div>
+            </div>
+
+            {/* City Filters */}
+            <div className="flex flex-wrap justify-center gap-2">
+              {cities.map((city) => (
+                <Button
+                  key={city}
+                  variant={selectedCity === city ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedCity(city)}
+                  className={`rounded-full ${
+                    selectedCity !== city
+                      ? 'border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white'
+                      : ''
+                  }`}
+                >
+                  {city !== 'All' && <MapPin className="mr-1 h-3 w-3" />}
+                  {city}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
