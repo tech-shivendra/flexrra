@@ -32,7 +32,7 @@ const Navbar = () => {
   if (!user) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-primary/20 gradient-primary shadow-lg">
+    <nav className="sticky top-0 z-50 w-full border-b border-primary/20 gradient-primary shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Flexxra" className="h-10 w-auto" />
