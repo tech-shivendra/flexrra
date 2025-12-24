@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface SubscriptionData {
   plan: string;
   pause_count: number;
+  resumed_at: string | null;
 }
 
 export const useSubscription = () => {
@@ -20,7 +21,7 @@ export const useSubscription = () => {
       
       const { data } = await supabase
         .from('subscriptions')
-        .select('plan, pause_count')
+        .select('plan, pause_count, resumed_at')
         .eq('user_id', user.id)
         .in('status', ['active', 'paused'])
         .order('created_at', { ascending: false })
@@ -45,9 +46,29 @@ export const useSubscription = () => {
     return Math.max(0, maxPauses - subscriptionData.pause_count);
   };
 
+  const getDaysSinceLastResume = () => {
+    if (!subscriptionData?.resumed_at) return null;
+    const resumedDate = new Date(subscriptionData.resumed_at);
+    const now = new Date();
+    const diffTime = now.getTime() - resumedDate.getTime();
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const canPause = () => {
     if (!subscriptionData) return false;
-    return getRemainingPauses() > 0;
+    if (getRemainingPauses() <= 0) return false;
+    
+    // Check 10-day gap requirement (only if they've resumed before)
+    const daysSinceResume = getDaysSinceLastResume();
+    if (daysSinceResume !== null && daysSinceResume < 10) return false;
+    
+    return true;
+  };
+
+  const getDaysUntilCanPause = () => {
+    const daysSinceResume = getDaysSinceLastResume();
+    if (daysSinceResume === null) return 0;
+    return Math.max(0, 10 - daysSinceResume);
   };
 
   const createSubscription = async (
@@ -190,6 +211,7 @@ export const useSubscription = () => {
     pauseCount: subscriptionData?.pause_count || 0,
     remainingPauses: getRemainingPauses(),
     canPause: canPause(),
+    daysUntilCanPause: getDaysUntilCanPause(),
     isLoading,
     error,
     createSubscription,
