@@ -13,6 +13,7 @@ export interface Gym {
   amenities: string[];
   phone: string;
   image: string;
+  gallery: string[];
   owner: {
     name: string;
     email: string;
@@ -51,6 +52,33 @@ const gymImages = [
   'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
 ];
 
+// Gallery images for gyms
+const galleryImages = [
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=600&h=400&fit=crop',
+];
+
+// Helper to get gallery images for each gym
+const getGymGallery = (index: number): string[] => {
+  const startIdx = (index * 3) % galleryImages.length;
+  return [
+    galleryImages[startIdx % galleryImages.length],
+    galleryImages[(startIdx + 1) % galleryImages.length],
+    galleryImages[(startIdx + 2) % galleryImages.length],
+    galleryImages[(startIdx + 3) % galleryImages.length],
+  ];
+};
+
 // Lucknow gyms data
 const mockGyms: Gym[] = [
   {
@@ -65,6 +93,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC', 'Steam Room'],
     phone: '9889001234',
     image: gymImages[0],
+    gallery: getGymGallery(0),
     owner: { name: 'Rajesh Tiwari', email: 'rajesh@goldgymlko.com', phone: '9889001234' },
     status: 'active',
     approvedByAdmin: true,
@@ -81,6 +110,7 @@ const mockGyms: Gym[] = [
     amenities: ['24/7 Access', 'Locker Room', 'Shower', 'AC'],
     phone: '9889005678',
     image: gymImages[1],
+    gallery: getGymGallery(1),
     owner: { name: 'Sanjay Mishra', email: 'sanjay@anytimefitness.com', phone: '9889005678' },
     status: 'active',
     approvedByAdmin: true,
@@ -97,6 +127,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'Juice Bar'],
     phone: '9889009012',
     image: gymImages[2],
+    gallery: getGymGallery(2),
     owner: { name: 'Preeti Singh', email: 'preeti@fitnessfirst.com', phone: '9889009012' },
     status: 'active',
     approvedByAdmin: true,
@@ -113,6 +144,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'AC'],
     phone: '9889003456',
     image: gymImages[3],
+    gallery: getGymGallery(3),
     owner: { name: 'Vikas Yadav', email: 'vikas@musclefactory.com', phone: '9889003456' },
     status: 'active',
     approvedByAdmin: true,
@@ -129,6 +161,7 @@ const mockGyms: Gym[] = [
     amenities: ['Pool', 'Locker Room', 'Shower', 'Cafe', 'AC'],
     phone: '9889007890',
     image: gymImages[4],
+    gallery: getGymGallery(4),
     owner: { name: 'Meera Gupta', email: 'meera@wellnesshub.com', phone: '9889007890' },
     status: 'active',
     approvedByAdmin: true,
@@ -145,6 +178,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889011111',
     image: gymImages[5],
+    gallery: getGymGallery(5),
     owner: { name: 'Amit Srivastava', email: 'amit@fitzone.com', phone: '9889011111' },
     status: 'active',
     approvedByAdmin: true,
@@ -161,6 +195,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'Parking'],
     phone: '9889022222',
     image: gymImages[6],
+    gallery: getGymGallery(6),
     owner: { name: 'Ravi Verma', email: 'ravi@irontemple.com', phone: '9889022222' },
     status: 'active',
     approvedByAdmin: true,
@@ -177,6 +212,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe'],
     phone: '9889033333',
     image: gymImages[7],
+    gallery: getGymGallery(7),
     owner: { name: 'Neeraj Pandey', email: 'neeraj@crossfitlko.com', phone: '9889033333' },
     status: 'active',
     approvedByAdmin: true,
@@ -193,6 +229,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'AC', 'Garden'],
     phone: '9889044444',
     image: gymImages[8],
+    gallery: getGymGallery(8),
     owner: { name: 'Sunita Sharma', email: 'sunita@yogashala.com', phone: '9889044444' },
     status: 'active',
     approvedByAdmin: true,
@@ -209,6 +246,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889055555',
     image: gymImages[9],
+    gallery: getGymGallery(9),
     owner: { name: 'Deepak Singh', email: 'deepak@powergym.com', phone: '9889055555' },
     status: 'active',
     approvedByAdmin: true,
@@ -225,6 +263,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe', 'AC'],
     phone: '9889066666',
     image: gymImages[10],
+    gallery: getGymGallery(10),
     owner: { name: 'Pooja Agarwal', email: 'pooja@flexfitness.com', phone: '9889066666' },
     status: 'active',
     approvedByAdmin: true,
@@ -241,6 +280,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Steam Room', 'Sauna'],
     phone: '9889077777',
     image: gymImages[11],
+    gallery: getGymGallery(11),
     owner: { name: 'Mohit Kapoor', email: 'mohit@beastmode.com', phone: '9889077777' },
     status: 'active',
     approvedByAdmin: true,
@@ -257,6 +297,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'AC'],
     phone: '9889088888',
     image: gymImages[12],
+    gallery: getGymGallery(12),
     owner: { name: 'Ram Prakash', email: 'ram@shreegym.com', phone: '9889088888' },
     status: 'active',
     approvedByAdmin: true,
@@ -273,6 +314,7 @@ const mockGyms: Gym[] = [
     amenities: ['Pool', 'Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889099999',
     image: gymImages[13],
+    gallery: getGymGallery(13),
     owner: { name: 'Ankit Rastogi', email: 'ankit@elitefitness.com', phone: '9889099999' },
     status: 'active',
     approvedByAdmin: true,
@@ -289,6 +331,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'AC'],
     phone: '9889111111',
     image: gymImages[14],
+    gallery: getGymGallery(14),
     owner: { name: 'Karan Mehta', email: 'karan@bodysculptors.com', phone: '9889111111' },
     status: 'active',
     approvedByAdmin: true,
@@ -305,6 +348,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe', 'AC'],
     phone: '9889122222',
     image: gymImages[15],
+    gallery: getGymGallery(15),
     owner: { name: 'Gaurav Trivedi', email: 'gaurav@transformgym.com', phone: '9889122222' },
     status: 'active',
     approvedByAdmin: true,
@@ -321,6 +365,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889133333',
     image: gymImages[16],
+    gallery: getGymGallery(16),
     owner: { name: 'Harsh Dwivedi', email: 'harsh@spartanfitness.com', phone: '9889133333' },
     status: 'active',
     approvedByAdmin: true,
@@ -337,6 +382,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889144444',
     image: gymImages[17],
+    gallery: getGymGallery(17),
     owner: { name: 'Vivek Bajpai', email: 'vivek@lakshyagym.com', phone: '9889144444' },
     status: 'active',
     approvedByAdmin: true,
@@ -353,6 +399,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Steam Room', 'Parking', 'AC'],
     phone: '9889155555',
     image: gymImages[18],
+    gallery: getGymGallery(18),
     owner: { name: 'Rohit Awasthi', email: 'rohit@fitnesshub.com', phone: '9889155555' },
     status: 'active',
     approvedByAdmin: true,
@@ -369,6 +416,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'Parking'],
     phone: '9889166666',
     image: gymImages[19],
+    gallery: getGymGallery(19),
     owner: { name: 'Arun Shukla', email: 'arun@xtremefitness.com', phone: '9889166666' },
     status: 'active',
     approvedByAdmin: true,
@@ -385,6 +433,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
     phone: '9889177777',
     image: gymImages[20],
+    gallery: getGymGallery(20),
     owner: { name: 'Saurabh Tripathi', email: 'saurabh@sweatfactory.com', phone: '9889177777' },
     status: 'active',
     approvedByAdmin: true,
@@ -401,6 +450,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Garden', 'AC'],
     phone: '9889188888',
     image: gymImages[21],
+    gallery: getGymGallery(21),
     owner: { name: 'Priya Tiwari', email: 'priya@corestrength.com', phone: '9889188888' },
     status: 'active',
     approvedByAdmin: true,
@@ -417,6 +467,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Sauna', 'Parking', 'AC'],
     phone: '9889199999',
     image: gymImages[22],
+    gallery: getGymGallery(22),
     owner: { name: 'Shivam Gupta', email: 'shivam@musclemantra.com', phone: '9889199999' },
     status: 'active',
     approvedByAdmin: true,
@@ -433,6 +484,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Juice Bar', 'AC'],
     phone: '9889211111',
     image: gymImages[23],
+    gallery: getGymGallery(23),
     owner: { name: 'Neha Saxena', email: 'neha@urbangym.com', phone: '9889211111' },
     status: 'active',
     approvedByAdmin: true,
@@ -449,6 +501,7 @@ const mockGyms: Gym[] = [
     amenities: ['Locker Room', 'Shower', 'Parking', 'Steam Room', 'AC'],
     phone: '9889222222',
     image: gymImages[24],
+    gallery: getGymGallery(24),
     owner: { name: 'Vikrant Singh', email: 'vikrant@powerhousegym.com', phone: '9889222222' },
     status: 'active',
     approvedByAdmin: true,
@@ -465,12 +518,10 @@ export const useGyms = () => {
     setIsLoading(true);
     setError(null);
     
-    // Using mock data for now - can be replaced with API call later
     const filteredGyms = city 
       ? mockGyms.filter(gym => gym.city.toLowerCase() === city.toLowerCase())
       : mockGyms;
     
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
     
     setGyms(filteredGyms);
@@ -478,7 +529,6 @@ export const useGyms = () => {
   }, []);
 
   const getGymById = useCallback(async (id: string): Promise<Gym | null> => {
-    // Using mock data
     return mockGyms.find(gym => gym._id === id) || null;
   }, []);
 
