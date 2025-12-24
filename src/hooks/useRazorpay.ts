@@ -50,7 +50,7 @@ export const useRazorpay = () => {
       body: {
         amount,
         currency: 'INR',
-        receipt: `flexrra_${user?.id || 'guest'}_${Date.now()}`,
+        receipt: `fx_${Date.now()}`,
         notes: {
           user_id: user?.id,
           plan: 'monthly',
