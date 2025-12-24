@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 
-const cities = ['All', 'Delhi', 'Mumbai', 'Bangalore', 'Lucknow'];
+const cities = ['All', 'Lucknow'];
 
 const Home = () => {
   const { gyms, isLoading, fetchGyms } = useGyms();
