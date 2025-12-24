@@ -12,6 +12,7 @@ import GymDetail from "@/pages/GymDetail";
 import Plans from "@/pages/Plans";
 import Profile from "@/pages/Profile";
 import History from "@/pages/History";
+import ScanCheckIn from "@/pages/ScanCheckIn";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -132,6 +133,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <History />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/scan"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ScanCheckIn />
             </AppLayout>
           </ProtectedRoute>
         }

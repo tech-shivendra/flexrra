@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, CreditCard, User, History, Menu, X, LogOut, Dumbbell } from 'lucide-react';
+import { Home, CreditCard, User, History, Menu, X, LogOut, Dumbbell, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -20,6 +20,7 @@ const Navbar = () => {
 
   const navLinks = [
     { to: '/', label: 'Home', icon: Home },
+    { to: '/scan', label: 'Check In', icon: QrCode },
     { to: '/plans', label: 'Plans', icon: CreditCard },
     { to: '/profile', label: 'Profile', icon: User },
     { to: '/history', label: 'History', icon: History },
