@@ -35,7 +35,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-primary/70 backdrop-blur-xl shadow-[0_4px_30px_rgba(139,92,246,0.3)]">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Flexxra" className="h-10 w-auto" />
+          <img src={logo} alt="Flexxra" className="h-14 w-auto" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
