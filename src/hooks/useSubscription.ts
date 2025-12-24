@@ -23,7 +23,7 @@ export const useSubscription = () => {
       const daysToAdd = planType === 'annual' ? 365 : 30;
       endDate.setDate(endDate.getDate() + daysToAdd);
       
-      const subscriptionPrice = price || (planType === 'annual' ? 11999 : 1499);
+      const subscriptionPrice = price || (planType === 'annual' ? 14999 : 1499);
       
       // Insert subscription record
       const { error: insertError } = await supabase

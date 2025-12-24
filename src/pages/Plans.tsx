@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const MONTHLY_PRICE = 1499;
-const ANNUAL_PRICE = 11999; // ~33% discount (12 months would be 17,988)
+const ANNUAL_PRICE = 14999; // ~17% discount (12 months would be 17,988)
 const ANNUAL_MONTHLY_EQUIVALENT = Math.round(ANNUAL_PRICE / 12);
 const ANNUAL_SAVINGS = (MONTHLY_PRICE * 12) - ANNUAL_PRICE;
 
