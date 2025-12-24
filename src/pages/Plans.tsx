@@ -15,9 +15,15 @@ import {
   Play,
   CreditCard,
   Sparkles,
+  Calendar,
 } from 'lucide-react';
 
-const SUBSCRIPTION_PRICE = 1499;
+const MONTHLY_PRICE = 1499;
+const ANNUAL_PRICE = 11999; // ~33% discount (12 months would be 17,988)
+const ANNUAL_MONTHLY_EQUIVALENT = Math.round(ANNUAL_PRICE / 12);
+const ANNUAL_SAVINGS = (MONTHLY_PRICE * 12) - ANNUAL_PRICE;
+
+type PlanType = 'monthly' | 'annual';
 
 const Plans = () => {
   const navigate = useNavigate();
@@ -31,20 +37,24 @@ const Plans = () => {
   } = useSubscription();
   const { initiatePayment, isLoading: isPaymentLoading } = useRazorpay();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (planType: PlanType) => {
     if (!user) {
       navigate('/login');
       return;
     }
     
+    const price = planType === 'monthly' ? MONTHLY_PRICE : ANNUAL_PRICE;
+    const description = planType === 'monthly' ? 'Monthly Gym Membership' : 'Annual Gym Membership';
+    
     setActionLoading('subscribe');
     
     initiatePayment(
       {
-        amount: SUBSCRIPTION_PRICE,
+        amount: price,
         name: 'Flexrra',
-        description: 'Monthly Gym Membership',
+        description,
         prefill: {
           name: user.name,
           email: user.email,
@@ -116,10 +126,10 @@ const Plans = () => {
           </p>
         </div>
 
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-4xl">
           {/* Current Status Card */}
           {user && subscriptionStatus !== 'inactive' && (
-            <div className="mb-6 rounded-2xl border border-border bg-card p-6 animate-fade-in">
+            <div className="mb-6 rounded-2xl border border-border bg-card p-6 animate-fade-in max-w-lg mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground">Current Status</h3>
                 <span
@@ -173,85 +183,178 @@ const Plans = () => {
             </div>
           )}
 
-          {/* Plan Card */}
-          <div className="relative overflow-hidden rounded-2xl border-2 border-primary bg-card shadow-lg animate-scale-in">
-            {/* Badge */}
-            <div className="absolute -right-8 top-6 rotate-45 gradient-primary px-10 py-1 text-xs font-semibold text-primary-foreground">
-              POPULAR
-            </div>
-
-            <div className="p-8">
-              {/* Plan Header */}
-              <div className="mb-6 text-center">
-                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                  <CreditCard className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="mb-2 text-2xl font-bold text-foreground">Monthly Pass</h2>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-foreground">₹{SUBSCRIPTION_PRICE}</span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="mb-8 space-y-4">
-                {features.map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                      <Icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="text-foreground">{text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Secure Payment Badge */}
-              <div className="mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-4 w-4" />
-                <span>Secure payment powered by Razorpay</span>
-              </div>
-
-              {/* CTA */}
-              {(!user || subscriptionStatus === 'inactive') && (
-                <Button
-                  variant="gradient"
-                  size="xl"
-                  className="w-full"
-                  onClick={handleSubscribe}
-                  disabled={isLoading || isPaymentLoading || actionLoading !== null}
+          {/* Plan Toggle */}
+          {(!user || subscriptionStatus === 'inactive') && (
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex rounded-full border border-border bg-muted/50 p-1">
+                <button
+                  onClick={() => setSelectedPlan('monthly')}
+                  className={`rounded-full px-6 py-2 text-sm font-medium transition-all ${
+                    selectedPlan === 'monthly'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
-                  {actionLoading === 'subscribe' || isPaymentLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      {user ? 'Pay ₹1499' : 'Get Started'}
-                    </>
-                  )}
-                </Button>
-              )}
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setSelectedPlan('annual')}
+                  className={`rounded-full px-6 py-2 text-sm font-medium transition-all flex items-center gap-2 ${
+                    selectedPlan === 'annual'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Annual
+                  <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success">
+                    Save ₹{ANNUAL_SAVINGS.toLocaleString()}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
 
-              {subscriptionStatus === 'active' && (
-                <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 py-3 text-success">
-                  <Check className="h-5 w-5" />
-                  <span className="font-semibold">You're subscribed!</span>
+          {/* Plan Cards */}
+          <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
+            {/* Monthly Plan */}
+            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
+              selectedPlan === 'monthly' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
+            }`}>
+              <div className="p-6">
+                <div className="mb-4 text-center">
+                  <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <CreditCard className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="mb-2 text-xl font-bold text-foreground">Monthly Pass</h2>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl font-bold text-foreground">₹{MONTHLY_PRICE.toLocaleString()}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
                 </div>
-              )}
+
+                <div className="mb-6 space-y-3">
+                  {features.map(({ icon: Icon, text }) => (
+                    <div key={text} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-sm text-foreground">{text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {(!user || subscriptionStatus === 'inactive') && (
+                  <Button
+                    variant={selectedPlan === 'monthly' ? 'gradient' : 'outline'}
+                    size="lg"
+                    className="w-full"
+                    onClick={() => handleSubscribe('monthly')}
+                    disabled={isLoading || isPaymentLoading || actionLoading !== null}
+                  >
+                    {actionLoading === 'subscribe' && selectedPlan === 'monthly' ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        {user ? `Pay ₹${MONTHLY_PRICE.toLocaleString()}` : 'Get Started'}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {subscriptionStatus === 'active' && (
+                  <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 py-3 text-success">
+                    <Check className="h-5 w-5" />
+                    <span className="font-semibold">You're subscribed!</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="border-t border-border bg-muted/30 px-8 py-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                Cancel or pause anytime. No questions asked.
-              </p>
+            {/* Annual Plan */}
+            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
+              selectedPlan === 'annual' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
+            }`}>
+              {/* Best Value Badge */}
+              <div className="absolute -right-8 top-6 rotate-45 gradient-primary px-10 py-1 text-xs font-semibold text-primary-foreground">
+                BEST VALUE
+              </div>
+
+              <div className="p-6">
+                <div className="mb-4 text-center">
+                  <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="mb-2 text-xl font-bold text-foreground">Annual Pass</h2>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl font-bold text-foreground">₹{ANNUAL_PRICE.toLocaleString()}</span>
+                    <span className="text-muted-foreground">/year</span>
+                  </div>
+                  <p className="mt-1 text-sm text-success font-medium">
+                    ₹{ANNUAL_MONTHLY_EQUIVALENT}/month • Save ₹{ANNUAL_SAVINGS.toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="mb-6 space-y-3">
+                  {features.map(({ icon: Icon, text }) => (
+                    <div key={text} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-sm text-foreground">{text}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-success shrink-0" />
+                    <span className="text-sm text-success font-medium">2 months FREE</span>
+                  </div>
+                </div>
+
+                {(!user || subscriptionStatus === 'inactive') && (
+                  <Button
+                    variant={selectedPlan === 'annual' ? 'gradient' : 'outline'}
+                    size="lg"
+                    className="w-full"
+                    onClick={() => handleSubscribe('annual')}
+                    disabled={isLoading || isPaymentLoading || actionLoading !== null}
+                  >
+                    {actionLoading === 'subscribe' && selectedPlan === 'annual' ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {user ? `Pay ₹${ANNUAL_PRICE.toLocaleString()}` : 'Get Started'}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {subscriptionStatus === 'active' && (
+                  <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 py-3 text-success">
+                    <Check className="h-5 w-5" />
+                    <span className="font-semibold">You're subscribed!</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* Secure Payment Badge */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            <span>Secure payment powered by Razorpay</span>
+          </div>
+
+          {/* Footer Note */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Cancel or pause anytime. No questions asked.
+            </p>
+          </div>
+
           {/* FAQs */}
-          <div className="mt-8 space-y-4">
+          <div className="mt-12 space-y-4 max-w-lg mx-auto">
             <h3 className="text-center font-semibold text-foreground">Common Questions</h3>
             <div className="space-y-3">
               {[
@@ -265,7 +368,7 @@ const Plans = () => {
                 },
                 {
                   q: 'Are there any hidden fees?',
-                  a: 'No hidden fees. ₹1499/month is all you pay.',
+                  a: `No hidden fees. Monthly is ₹${MONTHLY_PRICE.toLocaleString()}/month, Annual is ₹${ANNUAL_PRICE.toLocaleString()}/year.`,
                 },
                 {
                   q: 'Is my payment secure?',

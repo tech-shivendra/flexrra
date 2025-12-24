@@ -7,7 +7,12 @@ export const useSubscription = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createSubscription = async (razorpayOrderId?: string, razorpayPaymentId?: string) => {
+  const createSubscription = async (
+    razorpayOrderId?: string, 
+    razorpayPaymentId?: string,
+    planType: 'monthly' | 'annual' = 'monthly',
+    price?: number
+  ) => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
@@ -15,15 +20,18 @@ export const useSubscription = () => {
     
     try {
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 30);
+      const daysToAdd = planType === 'annual' ? 365 : 30;
+      endDate.setDate(endDate.getDate() + daysToAdd);
+      
+      const subscriptionPrice = price || (planType === 'annual' ? 11999 : 1499);
       
       // Insert subscription record
       const { error: insertError } = await supabase
         .from('subscriptions')
         .insert({
           user_id: user.id,
-          plan: 'monthly',
-          price: 1499,
+          plan: planType,
+          price: subscriptionPrice,
           status: 'active',
           end_date: endDate.toISOString(),
           razorpay_order_id: razorpayOrderId || null,
