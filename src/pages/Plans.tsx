@@ -26,10 +26,7 @@ const ANNUAL_PRICE = 14999; // ~17% discount (12 months would be 17,988)
 const ANNUAL_MONTHLY_EQUIVALENT = Math.round(ANNUAL_PRICE / 12);
 const ANNUAL_SAVINGS = (MONTHLY_PRICE * 12) - ANNUAL_PRICE;
 
-const COUPONS: Record<string, number> = {
-  'PW2025': 10,   // 10% discount
-  'USAMA': 100,   // 100% discount (free)
-};
+import { supabase } from '@/integrations/supabase/client';
 
 type PlanType = 'monthly' | 'annual';
 
@@ -54,20 +51,36 @@ const Plans = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<'pause' | 'resume'>('pause');
 
-  const applyCoupon = () => {
-    const upperCode = couponCode.toUpperCase();
-    const discount = COUPONS[upperCode];
-    if (discount !== undefined) {
-      setAppliedCoupon({ code: upperCode, discount });
-      setCouponError('');
-      toast.success(`Coupon applied! ${discount}% discount activated 🎉`);
+  const applyCoupon = async () => {
+    const upperCode = couponCode.toUpperCase().trim();
+    if (!upperCode) return;
+
+    setCouponLoading(true);
+    setCouponError('');
+
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('code, discount_percent')
+      .eq('code', upperCode)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error validating coupon:', error);
+      setCouponError('Failed to validate coupon');
+      setAppliedCoupon(null);
+    } else if (data) {
+      setAppliedCoupon({ code: data.code, discount: data.discount_percent });
+      toast.success(`Coupon applied! ${data.discount_percent}% discount activated 🎉`);
     } else {
       setAppliedCoupon(null);
-      setCouponError('Invalid coupon code');
+      setCouponError('Invalid or expired coupon code');
     }
+    setCouponLoading(false);
   };
 
   const removeCoupon = () => {
