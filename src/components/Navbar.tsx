@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, CreditCard, User, History, Menu, X, LogOut, Dumbbell, QrCode } from 'lucide-react';
+import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import logo from '@/assets/logo.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -34,10 +35,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-            <Dumbbell className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold text-gradient">Flexrra</span>
+          <img src={logo} alt="Flexxra" className="h-10 w-auto" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
