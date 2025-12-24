@@ -5,6 +5,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useRazorpay } from '@/hooks/useRazorpay';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SubscriptionActionDialog } from '@/components/SubscriptionActionDialog';
 import { toast } from 'sonner';
 import {
   Check,
@@ -41,6 +42,7 @@ const Plans = () => {
     subscriptionPlan,
     remainingPauses,
     canPause,
+    daysUntilCanPause,
     isLoading,
     createSubscription,
     pauseSubscription,
@@ -52,6 +54,8 @@ const Plans = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<'pause' | 'resume'>('pause');
 
   const applyCoupon = () => {
     const upperCode = couponCode.toUpperCase();
@@ -125,27 +129,39 @@ const Plans = () => {
     );
   };
 
-  const handlePause = async () => {
-    setActionLoading('pause');
-    const result = await pauseSubscription();
-    setActionLoading(null);
-    
-    if (result.success) {
-      toast.success('Subscription paused. Resume anytime!');
-    } else {
-      toast.error(result.error || 'Failed to pause subscription');
-    }
+  const openPauseDialog = () => {
+    setDialogAction('pause');
+    setDialogOpen(true);
   };
 
-  const handleResume = async () => {
-    setActionLoading('resume');
-    const result = await resumeSubscription();
-    setActionLoading(null);
-    
-    if (result.success) {
-      toast.success('Subscription resumed! Get back to your workouts 💪');
+  const openResumeDialog = () => {
+    setDialogAction('resume');
+    setDialogOpen(true);
+  };
+
+  const handleDialogConfirm = async () => {
+    if (dialogAction === 'pause') {
+      setActionLoading('pause');
+      const result = await pauseSubscription();
+      setActionLoading(null);
+      setDialogOpen(false);
+      
+      if (result.success) {
+        toast.success('Subscription paused. Resume anytime!');
+      } else {
+        toast.error(result.error || 'Failed to pause subscription');
+      }
     } else {
-      toast.error(result.error || 'Failed to resume subscription');
+      setActionLoading('resume');
+      const result = await resumeSubscription();
+      setActionLoading(null);
+      setDialogOpen(false);
+      
+      if (result.success) {
+        toast.success('Subscription resumed! Get back to your workouts 💪');
+      } else {
+        toast.error(result.error || 'Failed to resume subscription');
+      }
     }
   };
 
@@ -205,20 +221,18 @@ const Plans = () => {
                       variant="outline"
                       size="lg"
                       className="w-full"
-                      onClick={handlePause}
+                      onClick={openPauseDialog}
                       disabled={isLoading || actionLoading !== null || !canPause}
                     >
-                      {actionLoading === 'pause' ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Pause className="mr-2 h-4 w-4" />
-                      )}
+                      <Pause className="mr-2 h-4 w-4" />
                       Pause Subscription
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">
-                      {remainingPauses > 0 
-                        ? `${remainingPauses} pause${remainingPauses > 1 ? 's' : ''} remaining for ${subscriptionPlan} plan`
-                        : `No pauses remaining for ${subscriptionPlan} plan`
+                      {daysUntilCanPause > 0 
+                        ? `Wait ${daysUntilCanPause} more day${daysUntilCanPause > 1 ? 's' : ''} to pause`
+                        : remainingPauses > 0 
+                          ? `${remainingPauses} pause${remainingPauses > 1 ? 's' : ''} remaining for ${subscriptionPlan} plan`
+                          : `No pauses remaining for ${subscriptionPlan} plan`
                       }
                     </p>
                   </div>
@@ -227,18 +241,24 @@ const Plans = () => {
                     variant="gradient"
                     size="lg"
                     className="flex-1"
-                    onClick={handleResume}
+                    onClick={openResumeDialog}
                     disabled={isLoading || actionLoading !== null}
                   >
-                    {actionLoading === 'resume' ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Play className="mr-2 h-4 w-4" />
-                    )}
+                    <Play className="mr-2 h-4 w-4" />
                     Resume Subscription
                   </Button>
                 )}
               </div>
+
+              <SubscriptionActionDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                action={dialogAction}
+                remainingPauses={remainingPauses}
+                daysUntilCanPause={daysUntilCanPause}
+                isLoading={actionLoading !== null}
+                onConfirm={handleDialogConfirm}
+              />
             </div>
           )}
 
