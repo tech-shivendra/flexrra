@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useRazorpay } from '@/hooks/useRazorpay';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
@@ -16,6 +17,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+const SUBSCRIPTION_PRICE = 999;
+
 const Plans = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -23,10 +26,10 @@ const Plans = () => {
     subscriptionStatus,
     subscriptionEndDate,
     isLoading,
-    createSubscription,
     pauseSubscription,
     resumeSubscription,
   } = useSubscription();
+  const { initiatePayment, isLoading: isPaymentLoading } = useRazorpay();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const handleSubscribe = async () => {
@@ -36,14 +39,29 @@ const Plans = () => {
     }
     
     setActionLoading('subscribe');
-    const result = await createSubscription();
-    setActionLoading(null);
     
-    if (result.success) {
-      toast.success('Subscription activated! Welcome to Flexrra 🎉');
-    } else {
-      toast.error(result.error || 'Failed to subscribe');
-    }
+    initiatePayment(
+      {
+        amount: SUBSCRIPTION_PRICE,
+        name: 'Flexrra',
+        description: 'Monthly Gym Membership',
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone,
+        },
+      },
+      (response) => {
+        console.log('Payment successful:', response);
+        toast.success('Payment successful! Welcome to Flexrra 🎉');
+        setActionLoading(null);
+      },
+      (error) => {
+        console.error('Payment failed:', error);
+        toast.error(error.error || 'Payment failed. Please try again.');
+        setActionLoading(null);
+      }
+    );
   };
 
   const handlePause = async () => {
@@ -170,7 +188,7 @@ const Plans = () => {
                 </div>
                 <h2 className="mb-2 text-2xl font-bold text-foreground">Monthly Pass</h2>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-foreground">₹999</span>
+                  <span className="text-4xl font-bold text-foreground">₹{SUBSCRIPTION_PRICE}</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </div>
@@ -187,6 +205,12 @@ const Plans = () => {
                 ))}
               </div>
 
+              {/* Secure Payment Badge */}
+              <div className="mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Shield className="h-4 w-4" />
+                <span>Secure payment powered by Razorpay</span>
+              </div>
+
               {/* CTA */}
               {(!user || subscriptionStatus === 'inactive') && (
                 <Button
@@ -194,9 +218,9 @@ const Plans = () => {
                   size="xl"
                   className="w-full"
                   onClick={handleSubscribe}
-                  disabled={isLoading || actionLoading !== null}
+                  disabled={isLoading || isPaymentLoading || actionLoading !== null}
                 >
-                  {actionLoading === 'subscribe' ? (
+                  {actionLoading === 'subscribe' || isPaymentLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Processing...
@@ -204,7 +228,7 @@ const Plans = () => {
                   ) : (
                     <>
                       <Sparkles className="mr-2 h-5 w-5" />
-                      {user ? 'Subscribe Now' : 'Get Started'}
+                      {user ? 'Pay ₹999' : 'Get Started'}
                     </>
                   )}
                 </Button>
@@ -242,6 +266,10 @@ const Plans = () => {
                 {
                   q: 'Are there any hidden fees?',
                   a: 'No hidden fees. ₹999/month is all you pay.',
+                },
+                {
+                  q: 'Is my payment secure?',
+                  a: 'Yes! All payments are processed securely through Razorpay, India\'s trusted payment gateway.',
                 },
               ].map(({ q, a }) => (
                 <div key={q} className="rounded-lg border border-border bg-card p-4">
