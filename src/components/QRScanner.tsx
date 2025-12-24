@@ -1,0 +1,121 @@
+import { useEffect, useRef, useState } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Camera, CameraOff, Loader2 } from 'lucide-react';
+
+interface QRScannerProps {
+  onScan: (decodedText: string) => void;
+  onError?: (error: string) => void;
+  isProcessing?: boolean;
+}
+
+const QRScanner = ({ onScan, onError, isProcessing = false }: QRScannerProps) => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const startScanner = async () => {
+    if (!containerRef.current) return;
+
+    try {
+      const html5QrCode = new Html5Qrcode('qr-reader');
+      scannerRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1,
+        },
+        (decodedText) => {
+          // Stop scanning on successful decode
+          stopScanner();
+          onScan(decodedText);
+        },
+        (errorMessage) => {
+          // Ignore scan errors (these are normal when no QR is in view)
+        }
+      );
+
+      setIsScanning(true);
+      setHasPermission(true);
+    } catch (err: any) {
+      console.error('Error starting scanner:', err);
+      setHasPermission(false);
+      onError?.('Camera permission denied or not available');
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (err) {
+        console.error('Error stopping scanner:', err);
+      }
+      scannerRef.current = null;
+    }
+    setIsScanning(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, []);
+
+  return (
+    <Card className="mx-auto max-w-md overflow-hidden">
+      <CardContent className="p-4">
+        <div className="relative">
+          <div
+            id="qr-reader"
+            ref={containerRef}
+            className="min-h-[300px] rounded-lg bg-muted"
+          />
+
+          {!isScanning && !isProcessing && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-muted">
+              <Camera className="h-16 w-16 text-muted-foreground" />
+              <p className="text-center text-sm text-muted-foreground">
+                {hasPermission === false
+                  ? 'Camera permission denied'
+                  : 'Tap to start scanning'}
+              </p>
+              <Button onClick={startScanner} size="lg">
+                <Camera className="mr-2 h-4 w-4" />
+                Start Scanner
+              </Button>
+            </div>
+          )}
+
+          {isProcessing && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-muted/90">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Processing check-in...</p>
+            </div>
+          )}
+        </div>
+
+        {isScanning && !isProcessing && (
+          <div className="mt-4 flex justify-center">
+            <Button variant="outline" onClick={stopScanner}>
+              <CameraOff className="mr-2 h-4 w-4" />
+              Stop Scanner
+            </Button>
+          </div>
+        )}
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Point your camera at the gym's QR code to check in
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default QRScanner;

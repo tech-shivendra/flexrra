@@ -12,6 +12,15 @@ export interface CheckIn {
   check_in_time: string;
   check_in_type: 'qr' | 'manual';
   status: 'checkedIn' | 'checkedOut';
+  session_deducted?: boolean;
+}
+
+export interface SubscriptionInfo {
+  id: string;
+  status: string;
+  remaining_sessions: number;
+  total_sessions: number;
+  end_date: string;
 }
 
 export const useCheckIn = () => {
@@ -19,6 +28,120 @@ export const useCheckIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<CheckIn[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+
+  const fetchSubscription = useCallback(async () => {
+    if (!user || !session) return null;
+
+    const { data, error: fetchError } = await supabase
+      .from('subscriptions')
+      .select('id, status, remaining_sessions, total_sessions, end_date')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching subscription:', fetchError);
+      return null;
+    }
+
+    setSubscription(data);
+    return data;
+  }, [user, session]);
+
+  const qrCheckIn = async (qrCode: string) => {
+    if (!user || !session) return { success: false, error: 'Not authenticated' };
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch subscription status
+      const sub = await fetchSubscription();
+      
+      if (!sub) {
+        return { success: false, error: 'No active subscription found. Please purchase a plan.' };
+      }
+
+      if (sub.remaining_sessions <= 0) {
+        return { success: false, error: 'No sessions remaining. Please renew your subscription.' };
+      }
+
+      // Find gym by QR code
+      const { data: gym, error: gymError } = await supabase
+        .from('gyms')
+        .select('*')
+        .eq('qr_code', qrCode)
+        .maybeSingle();
+
+      if (gymError || !gym) {
+        return { success: false, error: 'Invalid QR code. Gym not found.' };
+      }
+
+      // Check if already checked in today at this gym
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data: existingCheckIn } = await supabase
+        .from('check_ins')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('gym_id', gym.id)
+        .gte('check_in_time', today.toISOString())
+        .maybeSingle();
+
+      if (existingCheckIn) {
+        return { success: false, error: 'You have already checked in at this gym today!' };
+      }
+
+      // Create check-in record
+      const { data: checkInData, error: checkInError } = await supabase
+        .from('check_ins')
+        .insert({
+          user_id: user.id,
+          gym_id: gym.id,
+          gym_name: gym.name,
+          gym_address: gym.address,
+          gym_city: gym.city,
+          check_in_type: 'qr',
+          status: 'checkedIn',
+          session_deducted: true,
+        })
+        .select()
+        .single();
+
+      if (checkInError) {
+        throw new Error(checkInError.message);
+      }
+
+      // Deduct session from subscription
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({ remaining_sessions: sub.remaining_sessions - 1 })
+        .eq('id', sub.id);
+
+      if (updateError) {
+        console.error('Error deducting session:', updateError);
+        // Don't fail the check-in, but log the error
+      }
+
+      // Update local state
+      setHistory((prev) => [checkInData as CheckIn, ...prev]);
+      setSubscription((prev) => prev ? { ...prev, remaining_sessions: prev.remaining_sessions - 1 } : null);
+
+      return { 
+        success: true, 
+        gym,
+        remainingSessions: sub.remaining_sessions - 1 
+      };
+    } catch (err: any) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const checkIn = async (gymId: string, gymName: string, gymAddress?: string, gymCity?: string) => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
@@ -115,8 +238,11 @@ export const useCheckIn = () => {
     history,
     isLoading,
     error,
+    subscription,
     checkIn,
+    qrCheckIn,
     fetchHistory,
+    fetchSubscription,
     getWorkoutsThisMonth,
     getLastCheckIn,
   };

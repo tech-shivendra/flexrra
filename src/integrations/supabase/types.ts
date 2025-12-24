@@ -23,6 +23,7 @@ export type Database = {
           gym_id: string
           gym_name: string | null
           id: string
+          session_deducted: boolean | null
           status: string | null
           user_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           gym_id: string
           gym_name?: string | null
           id?: string
+          session_deducted?: boolean | null
           status?: string | null
           user_id: string
         }
@@ -45,8 +47,57 @@ export type Database = {
           gym_id?: string
           gym_name?: string | null
           id?: string
+          session_deducted?: boolean | null
           status?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      gyms: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          city: string
+          close_time: string
+          created_at: string
+          facilities: string[] | null
+          id: string
+          name: string
+          open_time: string
+          phone: string | null
+          pincode: string | null
+          qr_code: string
+          status: string
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          city: string
+          close_time?: string
+          created_at?: string
+          facilities?: string[] | null
+          id?: string
+          name: string
+          open_time?: string
+          phone?: string | null
+          pincode?: string | null
+          qr_code?: string
+          status?: string
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          city?: string
+          close_time?: string
+          created_at?: string
+          facilities?: string[] | null
+          id?: string
+          name?: string
+          open_time?: string
+          phone?: string | null
+          pincode?: string | null
+          qr_code?: string
+          status?: string
         }
         Relationships: []
       }
@@ -105,9 +156,11 @@ export type Database = {
           price: number
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          remaining_sessions: number
           resumed_at: string | null
           start_date: string
           status: string
+          total_sessions: number
           user_id: string
         }
         Insert: {
@@ -119,9 +172,11 @@ export type Database = {
           price?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          remaining_sessions?: number
           resumed_at?: string | null
           start_date?: string
           status?: string
+          total_sessions?: number
           user_id: string
         }
         Update: {
@@ -133,9 +188,11 @@ export type Database = {
           price?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          remaining_sessions?: number
           resumed_at?: string | null
           start_date?: string
           status?: string
+          total_sessions?: number
           user_id?: string
         }
         Relationships: []
