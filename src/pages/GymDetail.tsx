@@ -281,16 +281,20 @@ const GymDetail = () => {
               </a>
             </div>
 
-            {/* Gallery Placeholder */}
+            {/* Gallery */}
             <div className="rounded-xl border border-border bg-card p-6">
               <h3 className="mb-4 text-lg font-semibold text-foreground">Gallery</h3>
               <div className="grid grid-cols-2 gap-2">
-                {['🏋️', '💪', '🏃', '🧘'].map((emoji, i) => (
+                {gym.gallery.map((image, i) => (
                   <div
                     key={i}
-                    className="flex aspect-square items-center justify-center rounded-lg bg-muted text-3xl"
+                    className="aspect-square overflow-hidden rounded-lg"
                   >
-                    {emoji}
+                    <img
+                      src={image}
+                      alt={`${gym.name} - Photo ${i + 1}`}
+                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                    />
                   </div>
                 ))}
               </div>
