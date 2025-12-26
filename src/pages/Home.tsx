@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
-import { useParallax } from '@/hooks/useParallax';
+import { useParallax, useMouseParallax } from '@/hooks/useParallax';
 const stats = [{
   icon: Building2,
   end: 20,
@@ -34,6 +34,7 @@ const stats = [{
 const Home = () => {
   const navigate = useNavigate();
   const scrollY = useParallax();
+  const mousePos = useMouseParallax(20);
   const {
     gyms,
     isLoading,
@@ -64,15 +65,17 @@ const Home = () => {
       <div className="relative min-h-[85vh] flex items-center overflow-hidden">
         {/* Video Background with Parallax */}
         <div 
-          className="absolute inset-0 z-0"
-          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+          className="absolute inset-0 z-0 transition-transform duration-100 ease-out"
+          style={{ 
+            transform: `translateY(${scrollY * 0.3}px) translate(${mousePos.x * 0.5}px, ${mousePos.y * 0.5}px)` 
+          }}
         >
           <video 
             autoPlay 
             loop 
             muted 
             playsInline 
-            className="h-[120%] w-full object-cover scale-105"
+            className="h-[120%] w-full object-cover scale-110"
             style={{ transform: `translateY(${scrollY * 0.1}px)` }}
           >
             <source src={heroVideo} type="video/mp4" />
@@ -82,30 +85,45 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
         </div>
 
-        {/* Floating Shapes with Parallax */}
-        <div style={{ transform: `translateY(${scrollY * 0.15}px)` }}>
+        {/* Floating Shapes with Mouse Parallax */}
+        <div 
+          className="transition-transform duration-150 ease-out"
+          style={{ 
+            transform: `translateY(${scrollY * 0.15}px) translate(${mousePos.x * 1.5}px, ${mousePos.y * 1.5}px)` 
+          }}
+        >
           <FloatingShapes />
         </div>
 
-        {/* Hero Content with Parallax */}
+        {/* Hero Content with Mouse Parallax */}
         <div 
-          className="relative z-10 w-full py-20 md:py-28 lg:py-32"
-          style={{ transform: `translateY(${scrollY * 0.4}px)`, opacity: Math.max(0, 1 - scrollY / 600) }}
+          className="relative z-10 w-full py-20 md:py-28 lg:py-32 transition-transform duration-200 ease-out"
+          style={{ 
+            transform: `translateY(${scrollY * 0.4}px) translate(${mousePos.x * -0.3}px, ${mousePos.y * -0.3}px)`, 
+            opacity: Math.max(0, 1 - scrollY / 600) 
+          }}
         >
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center max-w-4xl mx-auto">
-              {/* Badge */}
-              <div className="mb-6 animate-fade-in">
+              {/* Badge with subtle mouse effect */}
+              <div 
+                className="mb-6 animate-fade-in transition-transform duration-300 ease-out"
+                style={{ transform: `translate(${mousePos.x * -0.5}px, ${mousePos.y * -0.5}px)` }}
+              >
                 <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 border border-primary/30 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-md shadow-lg">
                   <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                   Premium Fitness Network
                 </span>
               </div>
               
-              {/* Main Heading */}
-              <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl animate-fade-in" style={{
-              animationDelay: '100ms'
-            }}>
+              {/* Main Heading with stronger mouse effect */}
+              <h1 
+                className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl animate-fade-in transition-transform duration-300 ease-out" 
+                style={{
+                  animationDelay: '100ms',
+                  transform: `translate(${mousePos.x * -0.8}px, ${mousePos.y * -0.8}px)`
+                }}
+              >
                 Find Your{' '}
                 <span className="text-gradient block sm:inline">Fitness</span>
               </h1>
