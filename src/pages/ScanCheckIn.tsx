@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, CheckCircle2, XCircle, Ticket } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { playSuccessSound } from '@/utils/sounds';
 
 interface CheckInResult {
   success: boolean;
@@ -35,6 +36,7 @@ const ScanCheckIn = () => {
     setIsProcessing(false);
 
     if (result.success) {
+      playSuccessSound();
       toast({
         title: 'Check-in Successful! 🎉',
         description: `Welcome to ${result.gym?.name}`,
