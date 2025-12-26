@@ -6,7 +6,7 @@ import AnimatedCard from '@/components/AnimatedCard';
 import StatsCounter from '@/components/StatsCounter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock } from 'lucide-react';
+import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
 const stats = [{
@@ -153,6 +153,18 @@ const Home = () => {
                   {city}
                 </Button>)}
             </div>
+          </div>
+        </div>
+
+        {/* Scroll Down Indicator */}
+        <div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 cursor-pointer animate-fade-in"
+          style={{ animationDelay: '500ms' }}
+          onClick={() => document.getElementById('gym-grid')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <div className="flex flex-col items-center gap-2 text-white/70 hover:text-white transition-colors">
+            <span className="text-xs font-medium tracking-wider uppercase">Scroll</span>
+            <ChevronDown className="h-6 w-6 animate-bounce" />
           </div>
         </div>
       </div>
