@@ -79,7 +79,9 @@ const Login = () => {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="mb-8 flex justify-center lg:hidden">
-            <img src={logo} alt="Flexrra Logo" className="h-16 w-auto object-contain" />
+            <div className="rounded-2xl bg-sky-100 p-4">
+              <img src={logo} alt="Flexrra Logo" className="h-16 w-auto object-contain" />
+            </div>
           </div>
 
           <div className="mb-8 text-center lg:text-left">
