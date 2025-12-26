@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
+import { useParallax } from '@/hooks/useParallax';
 const stats = [{
   icon: Building2,
   end: 20,
@@ -32,6 +33,7 @@ const stats = [{
 }];
 const Home = () => {
   const navigate = useNavigate();
+  const scrollY = useParallax();
   const {
     gyms,
     isLoading,
@@ -60,9 +62,19 @@ const Home = () => {
   return <div className="min-h-screen bg-background">
       {/* Hero Section with Video */}
       <div className="relative min-h-[85vh] flex items-center overflow-hidden">
-        {/* Video Background */}
-        <div className="absolute inset-0 z-0">
-          <video autoPlay loop muted playsInline className="h-full w-full object-cover scale-105">
+        {/* Video Background with Parallax */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+        >
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="h-[120%] w-full object-cover scale-105"
+            style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+          >
             <source src={heroVideo} type="video/mp4" />
           </video>
           {/* Enhanced dark overlay for better text readability */}
@@ -70,11 +82,16 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
         </div>
 
-        {/* Floating Shapes */}
-        
+        {/* Floating Shapes with Parallax */}
+        <div style={{ transform: `translateY(${scrollY * 0.15}px)` }}>
+          <FloatingShapes />
+        </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 w-full py-20 md:py-28 lg:py-32">
+        {/* Hero Content with Parallax */}
+        <div 
+          className="relative z-10 w-full py-20 md:py-28 lg:py-32"
+          style={{ transform: `translateY(${scrollY * 0.4}px)`, opacity: Math.max(0, 1 - scrollY / 600) }}
+        >
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center max-w-4xl mx-auto">
               {/* Badge */}
