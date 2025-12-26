@@ -1,13 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode } from 'lucide-react';
+import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import logo from '@/assets/logo.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { isAdmin } = useAdmin();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +27,7 @@ const Navbar = () => {
     { to: '/plans', label: 'Plans', icon: CreditCard },
     { to: '/profile', label: 'Profile', icon: User },
     { to: '/history', label: 'History', icon: History },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;
