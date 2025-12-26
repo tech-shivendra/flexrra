@@ -1,46 +1,39 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Gym images from Unsplash for display (since DB doesn't store images)
-const gymImages = [
+// Fallback gym images from Unsplash (used when no images are uploaded)
+const fallbackImages = [
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&h=300&fit=crop',
   'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
 ];
 
-// Gallery images for gyms
-const galleryImages = [
+// Gallery fallback images
+const fallbackGalleryImages = [
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop',
   'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&h=400&fit=crop',
   'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=400&fit=crop',
   'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&h=400&fit=crop',
 ];
 
-// Helper to get gallery images for each gym
-const getGymGallery = (index: number): string[] => {
-  const startIdx = index % galleryImages.length;
+// Helper to get fallback gallery
+const getFallbackGallery = (index: number): string[] => {
+  const startIdx = index % fallbackGalleryImages.length;
   return [
-    galleryImages[startIdx % galleryImages.length],
-    galleryImages[(startIdx + 1) % galleryImages.length],
-    galleryImages[(startIdx + 2) % galleryImages.length],
-    galleryImages[(startIdx + 3) % galleryImages.length],
+    fallbackGalleryImages[startIdx % fallbackGalleryImages.length],
+    fallbackGalleryImages[(startIdx + 1) % fallbackGalleryImages.length],
+    fallbackGalleryImages[(startIdx + 2) % fallbackGalleryImages.length],
+    fallbackGalleryImages[(startIdx + 3) % fallbackGalleryImages.length],
   ];
 };
 
-// Helper to get a consistent image for a gym based on its id
-const getGymImage = (id: string, index: number): string => {
-  // Use a hash of the id to get a consistent image
+// Helper to get a fallback image
+const getFallbackImage = (id: string, index: number): string => {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return gymImages[(hash + index) % gymImages.length];
+  return fallbackImages[(hash + index) % fallbackImages.length];
 };
 
 export interface Gym {
@@ -75,23 +68,44 @@ interface DbGym {
   qr_code: string;
 }
 
+interface DbGymImage {
+  id: string;
+  gym_id: string;
+  image_url: string;
+  is_primary: boolean;
+  created_at: string;
+}
+
 // Transform database gym to frontend gym format
-const transformGym = (dbGym: DbGym, index: number): Gym => ({
-  _id: dbGym.id,
-  name: dbGym.name,
-  address: dbGym.address,
-  city: dbGym.city,
-  pincode: dbGym.pincode || '',
-  openTime: dbGym.open_time,
-  closeTime: dbGym.close_time,
-  facilities: dbGym.facilities || [],
-  amenities: dbGym.amenities || [],
-  phone: dbGym.phone || '',
-  image: getGymImage(dbGym.id, index),
-  gallery: getGymGallery(index),
-  status: dbGym.status as 'active' | 'inactive',
-  qr_code: dbGym.qr_code,
-});
+const transformGym = (
+  dbGym: DbGym, 
+  index: number, 
+  images: DbGymImage[]
+): Gym => {
+  const gymImages = images.filter(img => img.gym_id === dbGym.id);
+  const primaryImage = gymImages.find(img => img.is_primary);
+  const mainImage = primaryImage?.image_url || gymImages[0]?.image_url || getFallbackImage(dbGym.id, index);
+  const gallery = gymImages.length > 0 
+    ? gymImages.map(img => img.image_url) 
+    : getFallbackGallery(index);
+
+  return {
+    _id: dbGym.id,
+    name: dbGym.name,
+    address: dbGym.address,
+    city: dbGym.city,
+    pincode: dbGym.pincode || '',
+    openTime: dbGym.open_time,
+    closeTime: dbGym.close_time,
+    facilities: dbGym.facilities || [],
+    amenities: dbGym.amenities || [],
+    phone: dbGym.phone || '',
+    image: mainImage,
+    gallery,
+    status: dbGym.status as 'active' | 'inactive',
+    qr_code: dbGym.qr_code,
+  };
+};
 
 export const useGyms = () => {
   const [gyms, setGyms] = useState<Gym[]>([]);
@@ -113,12 +127,27 @@ export const useGyms = () => {
         query = query.ilike('city', `%${city}%`);
       }
 
-      const { data, error: fetchError } = await query;
+      const { data: gymsData, error: gymsError } = await query;
 
-      if (fetchError) throw fetchError;
+      if (gymsError) throw gymsError;
 
-      const transformedGyms = (data || []).map((gym, index) => 
-        transformGym(gym as DbGym, index)
+      // Fetch all gym images
+      const gymIds = (gymsData || []).map(g => g.id);
+      let imagesData: DbGymImage[] = [];
+      
+      if (gymIds.length > 0) {
+        const { data: images, error: imagesError } = await supabase
+          .from('gym_images')
+          .select('*')
+          .in('gym_id', gymIds);
+
+        if (!imagesError && images) {
+          imagesData = images;
+        }
+      }
+
+      const transformedGyms = (gymsData || []).map((gym, index) => 
+        transformGym(gym as DbGym, index, imagesData)
       );
       
       setGyms(transformedGyms);
@@ -133,16 +162,23 @@ export const useGyms = () => {
 
   const getGymById = useCallback(async (id: string): Promise<Gym | null> => {
     try {
-      const { data, error: fetchError } = await supabase
+      const { data: gymData, error: gymError } = await supabase
         .from('gyms')
         .select('*')
         .eq('id', id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
-      if (!data) return null;
+      if (gymError) throw gymError;
+      if (!gymData) return null;
 
-      return transformGym(data as DbGym, 0);
+      // Fetch images for this gym
+      const { data: images } = await supabase
+        .from('gym_images')
+        .select('*')
+        .eq('gym_id', id)
+        .order('is_primary', { ascending: false });
+
+      return transformGym(gymData as DbGym, 0, images || []);
     } catch (err: any) {
       console.error('Error fetching gym:', err);
       return null;
