@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/logo-white.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
