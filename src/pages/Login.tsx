@@ -80,11 +80,8 @@ const Login = () => {
       <div className="flex w-full items-center justify-center bg-background p-6 lg:w-1/2 lg:p-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
-              <img src={logo} alt="Flexrra Logo" className="h-8 w-8 object-contain" />
-            </div>
-            <span className="text-2xl font-bold text-gradient">Flexrra</span>
+          <div className="mb-8 flex justify-center lg:hidden">
+            <img src={logo} alt="Flexrra Logo" className="h-16 w-auto object-contain" />
           </div>
 
           <div className="mb-8 text-center lg:text-left">
