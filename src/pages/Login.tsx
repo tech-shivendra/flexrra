@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Dumbbell, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import logo from '@/assets/logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -63,7 +64,7 @@ const Login = () => {
         <div className="max-w-md text-center">
           <div className="mb-8 flex justify-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-foreground/20 backdrop-blur-sm">
-              <Dumbbell className="h-10 w-10 text-primary-foreground" />
+              <img src={logo} alt="Flexrra Logo" className="h-12 w-12 object-contain" />
             </div>
           </div>
           <h1 className="mb-4 text-4xl font-bold text-primary-foreground">
@@ -81,7 +82,7 @@ const Login = () => {
           {/* Mobile Logo */}
           <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
-              <Dumbbell className="h-6 w-6 text-primary-foreground" />
+              <img src={logo} alt="Flexrra Logo" className="h-8 w-8 object-contain" />
             </div>
             <span className="text-2xl font-bold text-gradient">Flexrra</span>
           </div>
