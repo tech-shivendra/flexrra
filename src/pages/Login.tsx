@@ -63,9 +63,7 @@ const Login = () => {
       <div className="hidden w-1/2 gradient-primary lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-foreground/20 backdrop-blur-sm">
-              <img src={logo} alt="Flexrra Logo" className="h-12 w-12 object-contain" />
-            </div>
+            <img src={logo} alt="Flexrra Logo" className="h-24 w-auto object-contain" />
           </div>
           <h1 className="mb-4 text-4xl font-bold text-primary-foreground">
             Welcome to Flexrra
