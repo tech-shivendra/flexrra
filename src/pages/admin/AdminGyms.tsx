@@ -31,9 +31,19 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search, QrCode } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Plus, Pencil, Trash2, Search, QrCode, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import GymQRManager from '@/components/admin/GymQRManager';
+import GymImageUpload from '@/components/admin/GymImageUpload';
+
+interface GymImage {
+  id: string;
+  gym_id: string;
+  image_url: string;
+  is_primary: boolean;
+  created_at: string;
+}
 interface Gym {
   id: string;
   name: string;
@@ -69,6 +79,8 @@ const AdminGyms = () => {
     amenities: '',
     facilities: '',
   });
+  const [gymImages, setGymImages] = useState<GymImage[]>([]);
+  const [imageManagerGym, setImageManagerGym] = useState<Gym | null>(null);
 
   const fetchGyms = async () => {
     setIsLoading(true);
@@ -91,6 +103,27 @@ const AdminGyms = () => {
   useEffect(() => {
     fetchGyms();
   }, []);
+
+  const fetchGymImages = async (gymId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('gym_images')
+        .select('*')
+        .eq('gym_id', gymId)
+        .order('is_primary', { ascending: false });
+
+      if (error) throw error;
+      setGymImages(data || []);
+    } catch (error) {
+      console.error('Error fetching gym images:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (imageManagerGym) {
+      fetchGymImages(imageManagerGym.id);
+    }
+  }, [imageManagerGym]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -386,6 +419,14 @@ const AdminGyms = () => {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => setImageManagerGym(gym)}
+                          title="Manage Images"
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => setQrManagerGym(gym)}
                           title="Manage QR Code"
                         >
@@ -431,6 +472,25 @@ const AdminGyms = () => {
         onClose={() => setQrManagerGym(null)}
         onQRRegenerated={fetchGyms}
       />
+
+      {/* Image Manager Dialog */}
+      <Dialog open={!!imageManagerGym} onOpenChange={() => setImageManagerGym(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Manage Images - {imageManagerGym?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {imageManagerGym && (
+            <GymImageUpload
+              gymId={imageManagerGym.id}
+              images={gymImages}
+              onImagesChange={() => fetchGymImages(imageManagerGym.id)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -98,6 +98,38 @@ export type Database = {
         }
         Relationships: []
       }
+      gym_images: {
+        Row: {
+          created_at: string
+          gym_id: string
+          id: string
+          image_url: string
+          is_primary: boolean
+        }
+        Insert: {
+          created_at?: string
+          gym_id: string
+          id?: string
+          image_url: string
+          is_primary?: boolean
+        }
+        Update: {
+          created_at?: string
+          gym_id?: string
+          id?: string
+          image_url?: string
+          is_primary?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_images_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gyms: {
         Row: {
           address: string
