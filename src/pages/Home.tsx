@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
+import FloatingShapes from '@/components/FloatingShapes';
 
 const stats = [
   { icon: Building2, end: 20, suffix: '+', label: 'Partner Gyms' },
@@ -63,6 +64,9 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-background" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
         </div>
+
+        {/* Floating Shapes */}
+        <FloatingShapes />
 
         {/* Hero Content */}
         <div className="relative z-10 w-full py-20 md:py-28 lg:py-32">
