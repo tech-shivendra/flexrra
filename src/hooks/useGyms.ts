@@ -1,5 +1,47 @@
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+// Gym images from Unsplash for display (since DB doesn't store images)
+const gymImages = [
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
+];
+
+// Gallery images for gyms
+const galleryImages = [
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&h=400&fit=crop',
+];
+
+// Helper to get gallery images for each gym
+const getGymGallery = (index: number): string[] => {
+  const startIdx = index % galleryImages.length;
+  return [
+    galleryImages[startIdx % galleryImages.length],
+    galleryImages[(startIdx + 1) % galleryImages.length],
+    galleryImages[(startIdx + 2) % galleryImages.length],
+    galleryImages[(startIdx + 3) % galleryImages.length],
+  ];
+};
+
+// Helper to get a consistent image for a gym based on its id
+const getGymImage = (id: string, index: number): string => {
+  // Use a hash of the id to get a consistent image
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return gymImages[(hash + index) % gymImages.length];
+};
 
 export interface Gym {
   _id: string;
@@ -14,502 +56,44 @@ export interface Gym {
   phone: string;
   image: string;
   gallery: string[];
-  owner: {
-    name: string;
-    email: string;
-    phone: string;
-  };
   status: 'active' | 'inactive';
-  approvedByAdmin: boolean;
+  qr_code: string;
 }
 
-// Gym images from Unsplash
-const gymImages = [
-  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1590487988256-9ed24133863e?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1598136490937-f77b0ce520fe?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1593476123561-9516f2097158?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1596357395217-80de13130e92?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-];
+interface DbGym {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  pincode: string | null;
+  open_time: string;
+  close_time: string;
+  facilities: string[] | null;
+  amenities: string[] | null;
+  phone: string | null;
+  status: string;
+  qr_code: string;
+}
 
-// Gallery images for gyms
-const galleryImages = [
-  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1570829460005-c840387bb1ca?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=600&h=400&fit=crop',
-];
-
-// Helper to get gallery images for each gym
-const getGymGallery = (index: number): string[] => {
-  const startIdx = (index * 3) % galleryImages.length;
-  return [
-    galleryImages[startIdx % galleryImages.length],
-    galleryImages[(startIdx + 1) % galleryImages.length],
-    galleryImages[(startIdx + 2) % galleryImages.length],
-    galleryImages[(startIdx + 3) % galleryImages.length],
-  ];
-};
-
-// Lucknow gyms data
-const mockGyms: Gym[] = [
-  {
-    _id: '1',
-    name: 'Gold Gym Hazratganj',
-    address: '12 Hazratganj, Near Sahara Ganj Mall',
-    city: 'Lucknow',
-    pincode: '226001',
-    openTime: '05:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'CrossFit', 'Zumba'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC', 'Steam Room'],
-    phone: '9889001234',
-    image: gymImages[0],
-    gallery: getGymGallery(0),
-    owner: { name: 'Rajesh Tiwari', email: 'rajesh@goldgymlko.com', phone: '9889001234' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '2',
-    name: 'Anytime Fitness Gomti Nagar',
-    address: '45 Vibhuti Khand, Gomti Nagar',
-    city: 'Lucknow',
-    pincode: '226010',
-    openTime: '00:00',
-    closeTime: '23:59',
-    facilities: ['Weights', 'Cardio', 'Personal Training', 'Functional'],
-    amenities: ['24/7 Access', 'Locker Room', 'Shower', 'AC'],
-    phone: '9889005678',
-    image: gymImages[1],
-    gallery: getGymGallery(1),
-    owner: { name: 'Sanjay Mishra', email: 'sanjay@anytimefitness.com', phone: '9889005678' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '3',
-    name: 'Fitness First Aliganj',
-    address: '78 Sector C, Aliganj',
-    city: 'Lucknow',
-    pincode: '226024',
-    openTime: '06:00',
-    closeTime: '21:00',
-    facilities: ['Weights', 'Yoga', 'Cardio', 'Dance'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'Juice Bar'],
-    phone: '9889009012',
-    image: gymImages[2],
-    gallery: getGymGallery(2),
-    owner: { name: 'Preeti Singh', email: 'preeti@fitnessfirst.com', phone: '9889009012' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '4',
-    name: 'Muscle Factory Indira Nagar',
-    address: '23 Faizabad Road, Indira Nagar',
-    city: 'Lucknow',
-    pincode: '226016',
-    openTime: '05:30',
-    closeTime: '22:30',
-    facilities: ['Weights', 'Powerlifting', 'Cardio', 'Boxing'],
-    amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'AC'],
-    phone: '9889003456',
-    image: gymImages[3],
-    gallery: getGymGallery(3),
-    owner: { name: 'Vikas Yadav', email: 'vikas@musclefactory.com', phone: '9889003456' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '5',
-    name: 'Wellness Hub Alambagh',
-    address: '56 Kanpur Road, Alambagh',
-    city: 'Lucknow',
-    pincode: '226005',
-    openTime: '06:00',
-    closeTime: '22:00',
-    facilities: ['Cardio', 'Yoga', 'Pilates', 'Swimming'],
-    amenities: ['Pool', 'Locker Room', 'Shower', 'Cafe', 'AC'],
-    phone: '9889007890',
-    image: gymImages[4],
-    gallery: getGymGallery(4),
-    owner: { name: 'Meera Gupta', email: 'meera@wellnesshub.com', phone: '9889007890' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '6',
-    name: 'FitZone Mahanagar',
-    address: '34 Mahanagar Extension, Near PVR',
-    city: 'Lucknow',
-    pincode: '226006',
-    openTime: '05:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'HIIT', 'Spinning'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889011111',
-    image: gymImages[5],
-    gallery: getGymGallery(5),
-    owner: { name: 'Amit Srivastava', email: 'amit@fitzone.com', phone: '9889011111' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '7',
-    name: 'Iron Temple Chinhat',
-    address: '89 Chinhat Industrial Area',
-    city: 'Lucknow',
-    pincode: '226028',
-    openTime: '05:00',
-    closeTime: '23:00',
-    facilities: ['Weights', 'Powerlifting', 'Strongman', 'Cardio'],
-    amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'Parking'],
-    phone: '9889022222',
-    image: gymImages[6],
-    gallery: getGymGallery(6),
-    owner: { name: 'Ravi Verma', email: 'ravi@irontemple.com', phone: '9889022222' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '8',
-    name: 'CrossFit Lucknow',
-    address: '12 Eldeco Udyan, Raebareli Road',
-    city: 'Lucknow',
-    pincode: '226025',
-    openTime: '06:00',
-    closeTime: '21:00',
-    facilities: ['CrossFit', 'Functional', 'HIIT', 'Olympic Lifting'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe'],
-    phone: '9889033333',
-    image: gymImages[7],
-    gallery: getGymGallery(7),
-    owner: { name: 'Neeraj Pandey', email: 'neeraj@crossfitlko.com', phone: '9889033333' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '9',
-    name: 'Yoga Shala Rajajipuram',
-    address: '45 Sector H, Rajajipuram',
-    city: 'Lucknow',
-    pincode: '226017',
-    openTime: '05:00',
-    closeTime: '20:00',
-    facilities: ['Yoga', 'Meditation', 'Pranayama', 'Pilates'],
-    amenities: ['Locker Room', 'Shower', 'AC', 'Garden'],
-    phone: '9889044444',
-    image: gymImages[8],
-    gallery: getGymGallery(8),
-    owner: { name: 'Sunita Sharma', email: 'sunita@yogashala.com', phone: '9889044444' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '10',
-    name: 'Power Gym Jankipuram',
-    address: '78 Sector B, Jankipuram',
-    city: 'Lucknow',
-    pincode: '226021',
-    openTime: '05:30',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'Boxing', 'MMA'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889055555',
-    image: gymImages[9],
-    gallery: getGymGallery(9),
-    owner: { name: 'Deepak Singh', email: 'deepak@powergym.com', phone: '9889055555' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '11',
-    name: 'Flex Fitness Ashiyana',
-    address: '23 Ashiyana Colony, Near Metro Station',
-    city: 'Lucknow',
-    pincode: '226012',
-    openTime: '06:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'Zumba', 'Aerobics'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe', 'AC'],
-    phone: '9889066666',
-    image: gymImages[10],
-    gallery: getGymGallery(10),
-    owner: { name: 'Pooja Agarwal', email: 'pooja@flexfitness.com', phone: '9889066666' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '12',
-    name: 'Beast Mode Husainganj',
-    address: '56 Husainganj, Near Charbagh',
-    city: 'Lucknow',
-    pincode: '226001',
-    openTime: '05:00',
-    closeTime: '23:00',
-    facilities: ['Weights', 'Powerlifting', 'Cardio', 'Functional'],
-    amenities: ['Locker Room', 'Shower', 'Steam Room', 'Sauna'],
-    phone: '9889077777',
-    image: gymImages[11],
-    gallery: getGymGallery(11),
-    owner: { name: 'Mohit Kapoor', email: 'mohit@beastmode.com', phone: '9889077777' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '13',
-    name: 'Shree Gym Chowk',
-    address: '89 Aminabad, Chowk',
-    city: 'Lucknow',
-    pincode: '226018',
-    openTime: '06:00',
-    closeTime: '21:00',
-    facilities: ['Weights', 'Cardio', 'Yoga', 'Dance'],
-    amenities: ['Locker Room', 'Shower', 'AC'],
-    phone: '9889088888',
-    image: gymImages[12],
-    gallery: getGymGallery(12),
-    owner: { name: 'Ram Prakash', email: 'ram@shreegym.com', phone: '9889088888' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '14',
-    name: 'Elite Fitness Vikas Nagar',
-    address: '12 Vikas Nagar, Near Fun Republic',
-    city: 'Lucknow',
-    pincode: '226022',
-    openTime: '05:30',
-    closeTime: '22:30',
-    facilities: ['Weights', 'Cardio', 'CrossFit', 'Swimming'],
-    amenities: ['Pool', 'Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889099999',
-    image: gymImages[13],
-    gallery: getGymGallery(13),
-    owner: { name: 'Ankit Rastogi', email: 'ankit@elitefitness.com', phone: '9889099999' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '15',
-    name: 'Body Sculptors Aashiana',
-    address: '34 Sector L, Aashiana',
-    city: 'Lucknow',
-    pincode: '226012',
-    openTime: '06:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'Personal Training', 'Nutrition'],
-    amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'AC'],
-    phone: '9889111111',
-    image: gymImages[14],
-    gallery: getGymGallery(14),
-    owner: { name: 'Karan Mehta', email: 'karan@bodysculptors.com', phone: '9889111111' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '16',
-    name: 'Transform Gym Sushant Golf City',
-    address: '45 Sushant Golf City, Ansal API',
-    city: 'Lucknow',
-    pincode: '226030',
-    openTime: '05:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'HIIT', 'Spinning'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'Cafe', 'AC'],
-    phone: '9889122222',
-    image: gymImages[15],
-    gallery: getGymGallery(15),
-    owner: { name: 'Gaurav Trivedi', email: 'gaurav@transformgym.com', phone: '9889122222' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '17',
-    name: 'Spartan Fitness Kursi Road',
-    address: '78 Kursi Road, Near Awadh Hospital',
-    city: 'Lucknow',
-    pincode: '226026',
-    openTime: '05:30',
-    closeTime: '22:30',
-    facilities: ['Weights', 'Cardio', 'MMA', 'Boxing'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889133333',
-    image: gymImages[16],
-    gallery: getGymGallery(16),
-    owner: { name: 'Harsh Dwivedi', email: 'harsh@spartanfitness.com', phone: '9889133333' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '18',
-    name: 'Lakshya Gym Khurram Nagar',
-    address: '23 Khurram Nagar, Near Lekhraj Metro',
-    city: 'Lucknow',
-    pincode: '226022',
-    openTime: '06:00',
-    closeTime: '21:00',
-    facilities: ['Weights', 'Cardio', 'Yoga', 'Aerobics'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889144444',
-    image: gymImages[17],
-    gallery: getGymGallery(17),
-    owner: { name: 'Vivek Bajpai', email: 'vivek@lakshyagym.com', phone: '9889144444' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '19',
-    name: 'Fitness Hub Vinay Khand',
-    address: '56 Vinay Khand, Gomti Nagar Extension',
-    city: 'Lucknow',
-    pincode: '226010',
-    openTime: '05:00',
-    closeTime: '23:00',
-    facilities: ['Weights', 'Cardio', 'CrossFit', 'Zumba'],
-    amenities: ['Locker Room', 'Shower', 'Steam Room', 'Parking', 'AC'],
-    phone: '9889155555',
-    image: gymImages[18],
-    gallery: getGymGallery(18),
-    owner: { name: 'Rohit Awasthi', email: 'rohit@fitnesshub.com', phone: '9889155555' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '20',
-    name: 'Xtreme Fitness Sitapur Road',
-    address: '89 Sitapur Road, Near Dubagga',
-    city: 'Lucknow',
-    pincode: '226020',
-    openTime: '05:30',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Powerlifting', 'Cardio', 'Functional'],
-    amenities: ['Locker Room', 'Shower', 'Supplements Shop', 'Parking'],
-    phone: '9889166666',
-    image: gymImages[19],
-    gallery: getGymGallery(19),
-    owner: { name: 'Arun Shukla', email: 'arun@xtremefitness.com', phone: '9889166666' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '21',
-    name: 'Sweat Factory Faizabad Road',
-    address: '12 Faizabad Road, Near Polytechnic',
-    city: 'Lucknow',
-    pincode: '226016',
-    openTime: '06:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'HIIT', 'Spinning'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'AC'],
-    phone: '9889177777',
-    image: gymImages[20],
-    gallery: getGymGallery(20),
-    owner: { name: 'Saurabh Tripathi', email: 'saurabh@sweatfactory.com', phone: '9889177777' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '22',
-    name: 'Core Strength Indira Dam',
-    address: '34 Indira Dam Road, Daliganj',
-    city: 'Lucknow',
-    pincode: '226020',
-    openTime: '05:00',
-    closeTime: '21:00',
-    facilities: ['Weights', 'Cardio', 'Yoga', 'Pilates'],
-    amenities: ['Locker Room', 'Shower', 'Garden', 'AC'],
-    phone: '9889188888',
-    image: gymImages[21],
-    gallery: getGymGallery(21),
-    owner: { name: 'Priya Tiwari', email: 'priya@corestrength.com', phone: '9889188888' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '23',
-    name: 'Muscle Mantra IIM Road',
-    address: '45 IIM Road, Near Prabhu Market',
-    city: 'Lucknow',
-    pincode: '226013',
-    openTime: '05:30',
-    closeTime: '22:30',
-    facilities: ['Weights', 'Powerlifting', 'Cardio', 'Boxing'],
-    amenities: ['Locker Room', 'Shower', 'Sauna', 'Parking', 'AC'],
-    phone: '9889199999',
-    image: gymImages[22],
-    gallery: getGymGallery(22),
-    owner: { name: 'Shivam Gupta', email: 'shivam@musclemantra.com', phone: '9889199999' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '24',
-    name: 'Urban Gym Kaiserbagh',
-    address: '78 Kaiserbagh, Near GPO',
-    city: 'Lucknow',
-    pincode: '226001',
-    openTime: '06:00',
-    closeTime: '22:00',
-    facilities: ['Weights', 'Cardio', 'Zumba', 'Dance'],
-    amenities: ['Locker Room', 'Shower', 'Juice Bar', 'AC'],
-    phone: '9889211111',
-    image: gymImages[23],
-    gallery: getGymGallery(23),
-    owner: { name: 'Neha Saxena', email: 'neha@urbangym.com', phone: '9889211111' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-  {
-    _id: '25',
-    name: 'Powerhouse Gym Telibagh',
-    address: '23 Telibagh, Near Ring Road',
-    city: 'Lucknow',
-    pincode: '226029',
-    openTime: '05:00',
-    closeTime: '23:00',
-    facilities: ['Weights', 'Cardio', 'CrossFit', 'Strongman'],
-    amenities: ['Locker Room', 'Shower', 'Parking', 'Steam Room', 'AC'],
-    phone: '9889222222',
-    image: gymImages[24],
-    gallery: getGymGallery(24),
-    owner: { name: 'Vikrant Singh', email: 'vikrant@powerhousegym.com', phone: '9889222222' },
-    status: 'active',
-    approvedByAdmin: true,
-  },
-];
+// Transform database gym to frontend gym format
+const transformGym = (dbGym: DbGym, index: number): Gym => ({
+  _id: dbGym.id,
+  name: dbGym.name,
+  address: dbGym.address,
+  city: dbGym.city,
+  pincode: dbGym.pincode || '',
+  openTime: dbGym.open_time,
+  closeTime: dbGym.close_time,
+  facilities: dbGym.facilities || [],
+  amenities: dbGym.amenities || [],
+  phone: dbGym.phone || '',
+  image: getGymImage(dbGym.id, index),
+  gallery: getGymGallery(index),
+  status: dbGym.status as 'active' | 'inactive',
+  qr_code: dbGym.qr_code,
+});
 
 export const useGyms = () => {
-  const { session } = useAuth();
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -518,19 +102,77 @@ export const useGyms = () => {
     setIsLoading(true);
     setError(null);
     
-    const filteredGyms = city 
-      ? mockGyms.filter(gym => gym.city.toLowerCase() === city.toLowerCase())
-      : mockGyms;
-    
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    setGyms(filteredGyms);
-    setIsLoading(false);
+    try {
+      let query = supabase
+        .from('gyms')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (city) {
+        query = query.ilike('city', `%${city}%`);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      const transformedGyms = (data || []).map((gym, index) => 
+        transformGym(gym as DbGym, index)
+      );
+      
+      setGyms(transformedGyms);
+    } catch (err: any) {
+      console.error('Error fetching gyms:', err);
+      setError(err.message || 'Failed to fetch gyms');
+      setGyms([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const getGymById = useCallback(async (id: string): Promise<Gym | null> => {
-    return mockGyms.find(gym => gym._id === id) || null;
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('gyms')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!data) return null;
+
+      return transformGym(data as DbGym, 0);
+    } catch (err: any) {
+      console.error('Error fetching gym:', err);
+      return null;
+    }
   }, []);
 
-  return { gyms, isLoading, error, fetchGyms, getGymById };
+  // Get unique cities from the gyms for filtering
+  const getCities = useCallback(async (): Promise<string[]> => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('gyms')
+        .select('city')
+        .eq('status', 'active');
+
+      if (fetchError) throw fetchError;
+
+      const uniqueCities = [...new Set((data || []).map(g => g.city))];
+      return uniqueCities.sort();
+    } catch (err: any) {
+      console.error('Error fetching cities:', err);
+      return [];
+    }
+  }, []);
+
+  return {
+    gyms,
+    isLoading,
+    error,
+    fetchGyms,
+    getGymById,
+    getCities,
+  };
 };

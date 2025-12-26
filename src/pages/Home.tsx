@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 
-const cities = ['All', 'Lucknow'];
-
 const stats = [
   { icon: Building2, end: 20, suffix: '+', label: 'Partner Gyms' },
   { icon: Users, end: 1000, suffix: '+', label: 'Active Members' },
@@ -20,10 +18,20 @@ const stats = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const { gyms, isLoading, fetchGyms } = useGyms();
+  const { gyms, isLoading, fetchGyms, getCities } = useGyms();
+  const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGyms, setFilteredGyms] = useState<Gym[]>([]);
+
+  useEffect(() => {
+    // Fetch cities for filter
+    const loadCities = async () => {
+      const cityList = await getCities();
+      setCities(cityList);
+    };
+    loadCities();
+  }, [getCities]);
 
   useEffect(() => {
     fetchGyms(selectedCity === 'All' ? undefined : selectedCity);
@@ -67,7 +75,7 @@ const Home = () => {
                 Find Your <span className="text-gradient">Perfect Gym</span>
               </h1>
               <p className="mb-8 text-lg text-white/80 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
-                Access 20+ premium gyms with one subscription. Work out anywhere, anytime.
+                Access premium gyms with one subscription. Work out anywhere, anytime.
               </p>
               
               {/* CTA Buttons */}
@@ -107,6 +115,18 @@ const Home = () => {
 
             {/* City Filters */}
             <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                variant={selectedCity === 'All' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCity('All')}
+                className={`rounded-full ${
+                  selectedCity !== 'All'
+                    ? 'border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white'
+                    : ''
+                }`}
+              >
+                All
+              </Button>
               {cities.map((city) => (
                 <Button
                   key={city}
@@ -119,7 +139,7 @@ const Home = () => {
                       : ''
                   }`}
                 >
-                  {city !== 'All' && <MapPin className="mr-1 h-3 w-3" />}
+                  <MapPin className="mr-1 h-3 w-3" />
                   {city}
                 </Button>
               ))}
@@ -148,7 +168,9 @@ const Home = () => {
             <p className="text-muted-foreground">
               {searchQuery
                 ? `No gyms matching "${searchQuery}"`
-                : `No gyms available in ${selectedCity}`}
+                : selectedCity !== 'All'
+                ? `No gyms available in ${selectedCity}`
+                : 'No gyms have been added yet. Check back soon!'}
             </p>
           </div>
         ) : (
