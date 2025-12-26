@@ -13,8 +13,16 @@ import Plans from "@/pages/Plans";
 import Profile from "@/pages/Profile";
 import History from "@/pages/History";
 import ScanCheckIn from "@/pages/ScanCheckIn";
-import AdminCoupons from "@/pages/AdminCoupons";
 import NotFound from "./pages/NotFound";
+
+// Admin imports
+import AdminLayout from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminGyms from "@/pages/admin/AdminGyms";
+import AdminCustomers from "@/pages/admin/AdminCustomers";
+import AdminPayments from "@/pages/admin/AdminPayments";
+import AdminPlans from "@/pages/admin/AdminPlans";
+import AdminCoupons from "@/pages/admin/AdminCoupons";
 
 const queryClient = new QueryClient();
 
@@ -148,14 +156,53 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminLayout>
+            <AdminDashboard />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/gyms"
+        element={
+          <AdminLayout>
+            <AdminGyms />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/customers"
+        element={
+          <AdminLayout>
+            <AdminCustomers />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/payments"
+        element={
+          <AdminLayout>
+            <AdminPayments />
+          </AdminLayout>
+        }
+      />
+      <Route
+        path="/admin/plans"
+        element={
+          <AdminLayout>
+            <AdminPlans />
+          </AdminLayout>
+        }
+      />
       <Route
         path="/admin/coupons"
         element={
-          <ProtectedRoute>
-            <AppLayout>
-              <AdminCoupons />
-            </AppLayout>
-          </ProtectedRoute>
+          <AdminLayout>
+            <AdminCoupons />
+          </AdminLayout>
         }
       />
 
