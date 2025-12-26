@@ -100,7 +100,10 @@ export const useRazorpay = () => {
   };
 
   const initiatePayment = async (
-    options: RazorpayOptions,
+    options: RazorpayOptions & { 
+      planType?: 'monthly' | 'annual';
+      couponInfo?: { code: string; discount: number; originalPrice: number };
+    },
     onSuccess: (response: any) => void,
     onFailure: (error: any) => void
   ) => {
@@ -147,10 +150,13 @@ export const useRazorpay = () => {
             
             console.log('Payment verified:', verificationResult);
             
-            // Update subscription in database
+            // Update subscription in database with coupon info
             await createSubscription(
               response.razorpay_order_id,
-              response.razorpay_payment_id
+              response.razorpay_payment_id,
+              options.planType || 'monthly',
+              options.amount,
+              options.couponInfo
             );
             
             onSuccess({

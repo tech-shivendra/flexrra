@@ -75,7 +75,8 @@ export const useSubscription = () => {
     razorpayOrderId?: string, 
     razorpayPaymentId?: string,
     planType: 'monthly' | 'annual' = 'monthly',
-    price?: number
+    price?: number,
+    couponInfo?: { code: string; discount: number; originalPrice: number }
   ) => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
     
@@ -87,20 +88,29 @@ export const useSubscription = () => {
       const daysToAdd = planType === 'annual' ? 365 : 30;
       endDate.setDate(endDate.getDate() + daysToAdd);
       
-      const subscriptionPrice = price || (planType === 'annual' ? 14999 : 1499);
+      const subscriptionPrice = price ?? (planType === 'annual' ? 14999 : 1499);
       
-      // Insert subscription record
+      // Insert subscription record with coupon info if provided
+      const subscriptionData: any = {
+        user_id: user.id,
+        plan: planType,
+        price: subscriptionPrice,
+        status: 'active',
+        end_date: endDate.toISOString(),
+        razorpay_order_id: razorpayOrderId || null,
+        razorpay_payment_id: razorpayPaymentId || null,
+      };
+
+      // Add coupon info if coupon was applied
+      if (couponInfo) {
+        subscriptionData.coupon_code = couponInfo.code;
+        subscriptionData.original_price = couponInfo.originalPrice;
+        subscriptionData.discount_percent = couponInfo.discount;
+      }
+
       const { error: insertError } = await supabase
         .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          plan: planType,
-          price: subscriptionPrice,
-          status: 'active',
-          end_date: endDate.toISOString(),
-          razorpay_order_id: razorpayOrderId || null,
-          razorpay_payment_id: razorpayPaymentId || null,
-        });
+        .insert(subscriptionData);
 
       if (insertError) {
         throw new Error(insertError.message);

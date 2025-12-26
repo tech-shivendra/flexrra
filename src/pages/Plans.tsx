@@ -104,11 +104,18 @@ const Plans = () => {
     const price = getDiscountedPrice(basePrice);
     const description = planType === 'monthly' ? 'Monthly Gym Membership' : 'Annual Gym Membership';
     
+    // Prepare coupon info if applied
+    const couponInfo = appliedCoupon ? {
+      code: appliedCoupon.code,
+      discount: appliedCoupon.discount,
+      originalPrice: basePrice,
+    } : undefined;
+    
     setActionLoading('subscribe');
     
     // Handle 100% discount (free subscription) - bypass payment
     if (price === 0) {
-      const result = await createSubscription(undefined, undefined, planType, 0);
+      const result = await createSubscription(undefined, undefined, planType, 0, couponInfo);
       if (result.success) {
         toast.success('Subscription activated! Welcome to Flexrra 🎉');
       } else {
@@ -128,6 +135,8 @@ const Plans = () => {
           email: user.email,
           contact: user.phone,
         },
+        planType,
+        couponInfo,
       },
       (response) => {
         console.log('Payment successful:', response);

@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, IndianRupee } from 'lucide-react';
+import { Search, IndianRupee, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Payment {
@@ -19,6 +19,9 @@ interface Payment {
   user_id: string;
   plan: string;
   price: number;
+  original_price: number | null;
+  discount_percent: number | null;
+  coupon_code: string | null;
   status: string;
   razorpay_order_id: string | null;
   razorpay_payment_id: string | null;
@@ -32,6 +35,7 @@ const AdminPayments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalDiscount, setTotalDiscount] = useState(0);
 
   const fetchPayments = async () => {
     setIsLoading(true);
@@ -61,11 +65,17 @@ const AdminPayments = () => {
 
       setPayments(paymentsWithUsers);
 
-      // Calculate total revenue from active/completed payments
+      // Calculate total revenue from active/completed payments (actual amount paid)
       const revenue = paymentsWithUsers
         .filter((p) => p.status === 'active' || p.razorpay_payment_id)
         .reduce((sum, p) => sum + p.price, 0);
       setTotalRevenue(revenue);
+
+      // Calculate total discount given
+      const discount = paymentsWithUsers
+        .filter((p) => p.coupon_code && p.original_price)
+        .reduce((sum, p) => sum + ((p.original_price || 0) - p.price), 0);
+      setTotalDiscount(discount);
     } catch (error) {
       console.error('Error fetching payments:', error);
     } finally {
@@ -82,7 +92,8 @@ const AdminPayments = () => {
       payment.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.razorpay_order_id?.includes(searchQuery) ||
-      payment.razorpay_payment_id?.includes(searchQuery)
+      payment.razorpay_payment_id?.includes(searchQuery) ||
+      payment.coupon_code?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -105,7 +116,7 @@ const AdminPayments = () => {
         <p className="text-muted-foreground">View subscription payments and transactions</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -115,6 +126,20 @@ const AdminPayments = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-foreground">₹{totalRevenue.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">Amount collected after discounts</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Discounts
+            </CardTitle>
+            <Tag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-orange-500">₹{totalDiscount.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">Discount given via coupons</p>
           </CardContent>
         </Card>
 
@@ -148,7 +173,7 @@ const AdminPayments = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by customer name, email, or transaction ID..."
+              placeholder="Search by customer name, email, coupon code, or transaction ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -170,7 +195,8 @@ const AdminPayments = () => {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Plan</TableHead>
-                  <TableHead>Amount</TableHead>
+                  <TableHead>Amount Paid</TableHead>
+                  <TableHead>Coupon</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment ID</TableHead>
                   <TableHead>Date</TableHead>
@@ -186,7 +212,28 @@ const AdminPayments = () => {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{payment.plan}</TableCell>
-                    <TableCell>₹{payment.price.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          ₹{payment.price.toLocaleString()}
+                        </p>
+                        {payment.original_price && payment.original_price !== payment.price && (
+                          <p className="text-xs text-muted-foreground line-through">
+                            ₹{payment.original_price.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {payment.coupon_code ? (
+                        <Badge variant="outline" className="gap-1 text-green-600 border-green-600/30 bg-green-50">
+                          <Tag className="h-3 w-3" />
+                          {payment.coupon_code} ({payment.discount_percent}% off)
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(payment.status)}>{payment.status}</Badge>
                     </TableCell>
