@@ -95,37 +95,33 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Protected Routes */}
+      {/* Public Routes with Navbar */}
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Home />
-            </AppLayout>
-          </ProtectedRoute>
+          <AppLayout>
+            <Home />
+          </AppLayout>
         }
       />
       <Route
         path="/gym/:id"
         element={
-          <ProtectedRoute>
-            <AppLayout>
-              <GymDetail />
-            </AppLayout>
-          </ProtectedRoute>
+          <AppLayout>
+            <GymDetail />
+          </AppLayout>
         }
       />
       <Route
         path="/plans"
         element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Plans />
-            </AppLayout>
-          </ProtectedRoute>
+          <AppLayout>
+            <Plans />
+          </AppLayout>
         }
       />
+
+      {/* Protected Routes */}
       <Route
         path="/profile"
         element={
