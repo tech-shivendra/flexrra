@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGyms, Gym } from '@/hooks/useGyms';
 import { useAuth } from '@/context/AuthContext';
-import { useCheckIn } from '@/hooks/useCheckIn';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import {
   ArrowLeft,
   MapPin,
@@ -55,7 +53,6 @@ const GymDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getGymById } = useGyms();
-  const { checkIn, isLoading: isCheckingIn, history, fetchHistory } = useCheckIn();
   
   const [gym, setGym] = useState<Gym | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,32 +68,7 @@ const GymDetail = () => {
     loadGym();
   }, [id, getGymById]);
 
-  useEffect(() => {
-    if (user) {
-      fetchHistory();
-    }
-  }, [user, fetchHistory]);
-
   const hasActiveSubscription = user?.subscription_status === 'active';
-  
-  const hasCheckedInToday = () => {
-    if (!id) return false;
-    const today = new Date().toDateString();
-    return history.some(
-      (c) => c.gym_id === id && new Date(c.check_in_time).toDateString() === today
-    );
-  };
-
-  const handleCheckIn = async () => {
-    if (!gym) return;
-    
-    const result = await checkIn(gym._id, gym.name, gym.address, gym.city);
-    if (result.success) {
-      toast.success('Check-in successful! Enjoy your workout! 💪');
-    } else {
-      toast.error(result.error || 'Check-in failed');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -145,47 +117,27 @@ const GymDetail = () => {
               </div>
             </div>
 
-            {/* Check-in Card */}
+            {/* Subscription Card */}
             <div className="rounded-2xl border border-border bg-card p-6 shadow-lg lg:min-w-[300px]">
               {hasActiveSubscription ? (
-                <>
-                  {hasCheckedInToday() ? (
-                    <div className="text-center">
-                      <div className="mb-3 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-success/10">
-                        <Check className="h-8 w-8 text-success" />
-                      </div>
-                      <h3 className="mb-1 font-semibold text-foreground">Checked In!</h3>
-                      <p className="text-sm text-muted-foreground">
-                        You've already checked in today. Enjoy your workout!
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <h3 className="mb-4 text-center font-semibold text-foreground">
-                        Ready to workout?
-                      </h3>
-                      <Button
-                        variant="gradient"
-                        size="xl"
-                        className="w-full"
-                        onClick={handleCheckIn}
-                        disabled={isCheckingIn}
-                      >
-                        {isCheckingIn ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Checking in...
-                          </>
-                        ) : (
-                          <>
-                            <Dumbbell className="mr-2 h-5 w-5" />
-                            Check In Now
-                          </>
-                        )}
-                      </Button>
-                    </>
-                  )}
-                </>
+                <div className="text-center">
+                  <div className="mb-3 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-success/10">
+                    <Check className="h-8 w-8 text-success" />
+                  </div>
+                  <h3 className="mb-1 font-semibold text-foreground">Active Subscription</h3>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Scan QR code at the gym to check in
+                  </p>
+                  <Button
+                    variant="gradient"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => navigate('/scan')}
+                  >
+                    <Dumbbell className="mr-2 h-5 w-5" />
+                    Scan QR to Check In
+                  </Button>
+                </div>
               ) : (
                 <div className="text-center">
                   <div className="mb-3 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-accent">
