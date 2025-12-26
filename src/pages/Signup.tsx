@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { Dumbbell, Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -453,9 +454,7 @@ const Signup = () => {
       <div className="hidden w-2/5 gradient-primary lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-foreground/20 backdrop-blur-sm">
-              <Dumbbell className="h-10 w-10 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Flexrra Logo" className="h-24 w-auto object-contain" />
           </div>
           <h1 className="mb-4 text-4xl font-bold text-primary-foreground">
             Join Flexrra
@@ -485,11 +484,8 @@ const Signup = () => {
       <div className="flex w-full items-center justify-center bg-background p-6 lg:w-3/5 lg:p-12">
         <div className="w-full max-w-lg">
           {/* Mobile Logo */}
-          <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
-              <Dumbbell className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold text-gradient">Flexrra</span>
+          <div className="mb-6 flex justify-center lg:hidden">
+            <img src={logo} alt="Flexrra Logo" className="h-16 w-auto object-contain" />
           </div>
 
           {step === 'otp' ? renderOTPStep() : renderFormStep()}
