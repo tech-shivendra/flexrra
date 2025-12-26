@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode, Shield } from 'lucide-react';
+import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode, Shield, LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import logo from '@/assets/logo-white.png';
@@ -21,7 +21,12 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  const navLinks = [
+  const publicNavLinks = [
+    { to: '/', label: 'Home', icon: Home },
+    { to: '/plans', label: 'Plans', icon: CreditCard },
+  ];
+
+  const authNavLinks = [
     { to: '/', label: 'Home', icon: Home },
     { to: '/scan', label: 'Check In', icon: QrCode },
     { to: '/plans', label: 'Plans', icon: CreditCard },
@@ -30,9 +35,9 @@ const Navbar = () => {
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const navLinks = user ? authNavLinks : publicNavLinks;
 
-  if (!user) return null;
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-primary/70 backdrop-blur-xl shadow-[0_4px_30px_rgba(139,92,246,0.3)]">
@@ -59,15 +64,29 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-4 md:flex">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-sm font-medium text-white">{user.name}</span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {user ? (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium text-white">{user.name}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={() => navigate('/login')}
+              className="bg-white/20 text-white hover:bg-white/30 border-0"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Login
+            </Button>
+          )}
         </div>
 
         <button
@@ -97,18 +116,32 @@ const Navbar = () => {
               </Link>
             ))}
             <hr className="my-2 border-white/20" />
-            <div className="flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
-                  {user.name.charAt(0).toUpperCase()}
+            {user ? (
+              <div className="flex items-center justify-between px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-medium text-white">{user.name}</span>
                 </div>
-                <span className="text-sm font-medium text-white">{user.name}</span>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-                <LogOut className="h-4 w-4" />
-                Logout
+            ) : (
+              <Button 
+                variant="secondary" 
+                className="w-full bg-white/20 text-white hover:bg-white/30 border-0"
+                onClick={() => {
+                  navigate('/login');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
               </Button>
-            </div>
+            )}
           </div>
         </div>
       )}
