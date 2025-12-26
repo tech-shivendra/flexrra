@@ -485,7 +485,7 @@ const Signup = () => {
         <div className="w-full max-w-lg">
           {/* Mobile Logo */}
           <div className="mb-6 flex justify-center lg:hidden">
-            <img src={logo} alt="Flexrra Logo" className="h-16 w-auto object-contain" />
+            <img src={logo} alt="Flexrra Logo" className="h-32 w-auto object-contain" />
           </div>
 
           {step === 'otp' ? renderOTPStep() : renderFormStep()}
