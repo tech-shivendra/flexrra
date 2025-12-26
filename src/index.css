@@ -287,3 +287,61 @@
     transform: scale(1);
   }
 }
+
+/* Floating shape animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-10px);
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px);
+  }
+}
+
+@keyframes floatRotate {
+  0%, 100% {
+    transform: translateY(0) rotate(45deg);
+  }
+  25% {
+    transform: translateY(-25px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(135deg);
+  }
+  75% {
+    transform: translateY(-35px) rotate(180deg);
+  }
+}
+
+@keyframes floatScale {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-20px) scale(1.1);
+  }
+  50% {
+    transform: translateY(-10px) scale(0.9);
+  }
+  75% {
+    transform: translateY(-30px) scale(1.05);
+  }
+}
+
+.animate-float {
+  animation: float linear infinite;
+}
+
+.animate-float-rotate {
+  animation: floatRotate linear infinite;
+}
+
+.animate-float-scale {
+  animation: floatScale linear infinite;
+}
