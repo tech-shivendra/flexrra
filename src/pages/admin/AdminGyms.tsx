@@ -31,9 +31,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
-
+import GymQRManager from '@/components/admin/GymQRManager';
 interface Gym {
   id: string;
   name: string;
@@ -57,7 +57,7 @@ const AdminGyms = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGym, setEditingGym] = useState<Gym | null>(null);
   const [deleteGym, setDeleteGym] = useState<Gym | null>(null);
-
+  const [qrManagerGym, setQrManagerGym] = useState<Gym | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -353,6 +353,7 @@ const AdminGyms = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>City</TableHead>
+                  <TableHead>UID</TableHead>
                   <TableHead>Timing</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -363,6 +364,11 @@ const AdminGyms = () => {
                   <TableRow key={gym.id}>
                     <TableCell className="font-medium">{gym.name}</TableCell>
                     <TableCell>{gym.city}</TableCell>
+                    <TableCell>
+                      <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
+                        {gym.qr_code.substring(0, 8)}...
+                      </code>
+                    </TableCell>
                     <TableCell>{gym.open_time} - {gym.close_time}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -377,6 +383,14 @@ const AdminGyms = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setQrManagerGym(gym)}
+                          title="Manage QR Code"
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => handleEdit(gym)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -409,6 +423,14 @@ const AdminGyms = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* QR Manager Dialog */}
+      <GymQRManager
+        gym={qrManagerGym}
+        isOpen={!!qrManagerGym}
+        onClose={() => setQrManagerGym(null)}
+        onQRRegenerated={fetchGyms}
+      />
     </div>
   );
 };
