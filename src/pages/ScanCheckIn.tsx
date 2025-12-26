@@ -128,10 +128,24 @@ const ScanCheckIn = () => {
             <CardContent className="p-6 text-center">
               {checkInResult.success ? (
                 <>
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20">
-                    <CheckCircle2 className="h-12 w-12 text-green-500" />
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20 animate-success-pulse">
+                    <CheckCircle2 className="h-12 w-12 text-green-500 animate-success-check" />
                   </div>
-                  <h2 className="mb-2 text-xl font-bold text-foreground">
+                  <div className="animate-success-confetti pointer-events-none absolute inset-0 overflow-hidden">
+                    {[...Array(12)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute h-2 w-2 rounded-full animate-confetti-piece"
+                        style={{
+                          left: `${50 + (Math.random() - 0.5) * 60}%`,
+                          top: '40%',
+                          backgroundColor: ['#22c55e', '#10b981', '#34d399', '#6ee7b7'][i % 4],
+                          animationDelay: `${i * 0.05}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <h2 className="mb-2 text-xl font-bold text-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
                     Check-in Successful!
                   </h2>
                   <p className="mb-1 text-lg font-medium text-foreground">
