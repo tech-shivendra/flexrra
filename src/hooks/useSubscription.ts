@@ -91,7 +91,18 @@ export const useSubscription = () => {
       const subscriptionPrice = price ?? (planType === 'annual' ? 14999 : 1499);
       
       // Insert subscription record with coupon info if provided
-      const subscriptionData: any = {
+      const subscriptionRecord: {
+        user_id: string;
+        plan: string;
+        price: number;
+        status: string;
+        end_date: string;
+        razorpay_order_id: string | null;
+        razorpay_payment_id: string | null;
+        coupon_code?: string;
+        original_price?: number;
+        discount_percent?: number;
+      } = {
         user_id: user.id,
         plan: planType,
         price: subscriptionPrice,
@@ -103,14 +114,14 @@ export const useSubscription = () => {
 
       // Add coupon info if coupon was applied
       if (couponInfo) {
-        subscriptionData.coupon_code = couponInfo.code;
-        subscriptionData.original_price = couponInfo.originalPrice;
-        subscriptionData.discount_percent = couponInfo.discount;
+        subscriptionRecord.coupon_code = couponInfo.code;
+        subscriptionRecord.original_price = couponInfo.originalPrice;
+        subscriptionRecord.discount_percent = couponInfo.discount;
       }
 
       const { error: insertError } = await supabase
         .from('subscriptions')
-        .insert(subscriptionData);
+        .insert(subscriptionRecord);
 
       if (insertError) {
         throw new Error(insertError.message);
@@ -120,9 +131,10 @@ export const useSubscription = () => {
       await updateSubscription('active', endDate.toISOString());
       
       return { success: true };
-    } catch (err: any) {
-      setError(err.message);
-      return { success: false, error: err.message };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +143,7 @@ export const useSubscription = () => {
   const pauseSubscription = async () => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
     
-    // Check if pause limit is reached
+    // Client-side check for better UX (server enforces the real check)
     if (!canPause()) {
       const maxPauses = subscriptionData?.plan === 'annual' ? 3 : 1;
       return { 
@@ -144,33 +156,28 @@ export const useSubscription = () => {
     setError(null);
     
     try {
-      // Update the latest active subscription with incremented pause_count
-      const newPauseCount = (subscriptionData?.pause_count || 0) + 1;
-      
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          status: 'paused',
-          paused_at: new Date().toISOString(),
-          pause_count: newPauseCount,
-        })
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Use secure RPC function for pause operation
+      const { data, error: rpcError } = await supabase.rpc('pause_subscription');
 
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (rpcError) {
+        throw new Error(rpcError.message);
+      }
+
+      const result = data as { success: boolean; error?: string; pause_count?: number };
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to pause subscription');
       }
 
       // Update local state
-      setSubscriptionData(prev => prev ? { ...prev, pause_count: newPauseCount } : null);
-      await updateSubscription('paused');
+      setSubscriptionData(prev => prev ? { ...prev, pause_count: result.pause_count || prev.pause_count + 1 } : null);
+      await refreshProfile();
       
       return { success: true };
-    } catch (err: any) {
-      setError(err.message);
-      return { success: false, error: err.message };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -183,32 +190,26 @@ export const useSubscription = () => {
     setError(null);
     
     try {
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 30);
-      
-      // Update the latest paused subscription
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          status: 'active',
-          resumed_at: new Date().toISOString(),
-          end_date: endDate.toISOString(),
-        })
-        .eq('user_id', user.id)
-        .eq('status', 'paused')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Use secure RPC function for resume operation
+      const { data, error: rpcError } = await supabase.rpc('resume_subscription');
 
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (rpcError) {
+        throw new Error(rpcError.message);
       }
 
-      await updateSubscription('active', endDate.toISOString());
+      const result = data as { success: boolean; error?: string; end_date?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to resume subscription');
+      }
+
+      await refreshProfile();
       
       return { success: true };
-    } catch (err: any) {
-      setError(err.message);
-      return { success: false, error: err.message };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
