@@ -355,6 +355,8 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: { user_email: string }; Returns: boolean }
+      pause_subscription: { Args: never; Returns: Json }
+      resume_subscription: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
