@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface SendOTPRequest {
-  phone: string;
+  email: string;
 }
 
 const generateOTP = (): string => {
@@ -21,33 +21,33 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { phone }: SendOTPRequest = await req.json();
+    const { email }: SendOTPRequest = await req.json();
 
-    if (!phone || !/^\d{10}$/.test(phone)) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ error: "Invalid phone number. Must be 10 digits." }),
+        JSON.stringify({ error: "Invalid email address" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-    const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-    const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!accountSid || !authToken || !twilioPhone) {
-      console.error("Missing Twilio credentials");
-      return new Response(
-        JSON.stringify({ error: "SMS service not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    const emailjsServiceId = Deno.env.get("EMAILJS_SERVICE_ID");
+    const emailjsTemplateId = Deno.env.get("EMAILJS_TEMPLATE_ID");
+    const emailjsPublicKey = Deno.env.get("EMAILJS_PUBLIC_KEY");
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing Supabase credentials");
       return new Response(
         JSON.stringify({ error: "Database not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
+      console.error("Missing EmailJS credentials");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -59,17 +59,17 @@ const handler = async (req: Request): Promise<Response> => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes expiry
 
-    // Delete any existing OTPs for this phone
+    // Delete any existing OTPs for this email
     await supabase
-      .from("phone_otps")
+      .from("email_otps")
       .delete()
-      .eq("phone", phone);
+      .eq("email", email);
 
     // Store OTP in database
     const { error: insertError } = await supabase
-      .from("phone_otps")
+      .from("email_otps")
       .insert({
-        phone,
+        email,
         otp,
         expires_at: expiresAt,
         verified: false,
@@ -83,38 +83,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Format phone number for India (+91)
-    const formattedPhone = `+91${phone}`;
-
-    // Send OTP via Twilio
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    const credentials = btoa(`${accountSid}:${authToken}`);
-
-    const twilioResponse = await fetch(twilioUrl, {
+    // Send OTP via EmailJS
+    const emailjsResponse = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
       method: "POST",
       headers: {
-        "Authorization": `Basic ${credentials}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
       },
-      body: new URLSearchParams({
-        To: formattedPhone,
-        From: twilioPhone,
-        Body: `Your Flexrra verification code is: ${otp}. Valid for 5 minutes.`,
+      body: JSON.stringify({
+        service_id: emailjsServiceId,
+        template_id: emailjsTemplateId,
+        user_id: emailjsPublicKey,
+        template_params: {
+          to_email: email,
+          otp_code: otp,
+          app_name: "Flexrra",
+        },
       }),
     });
 
-    if (!twilioResponse.ok) {
-      const errorData = await twilioResponse.text();
-      console.error("Twilio error:", errorData);
-      // Clean up the stored OTP if SMS failed
-      await supabase.from("phone_otps").delete().eq("phone", phone);
+    if (!emailjsResponse.ok) {
+      const errorText = await emailjsResponse.text();
+      console.error("EmailJS error:", errorText);
+      // Clean up the stored OTP if email failed
+      await supabase.from("email_otps").delete().eq("email", email);
       return new Response(
-        JSON.stringify({ error: "Failed to send OTP. Please try again." }),
+        JSON.stringify({ error: "Failed to send OTP email. Please try again." }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    console.log(`OTP sent successfully to ${formattedPhone}`);
+    console.log(`OTP sent successfully to ${email}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP sent successfully" }),
