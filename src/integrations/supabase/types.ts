@@ -354,6 +354,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      deduct_session: { Args: { p_subscription_id: string }; Returns: Json }
       is_admin: { Args: { user_email: string }; Returns: boolean }
       pause_subscription: { Args: never; Returns: Json }
       resume_subscription: { Args: never; Returns: Json }

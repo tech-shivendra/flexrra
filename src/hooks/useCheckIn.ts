@@ -115,15 +115,15 @@ export const useCheckIn = () => {
         throw new Error(checkInError.message);
       }
 
-      // Deduct session from subscription
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({ remaining_sessions: sub.remaining_sessions - 1 })
-        .eq('id', sub.id);
+      // Deduct session using secure RPC function
+      const { data: deductResult, error: deductError } = await supabase
+        .rpc('deduct_session', { p_subscription_id: sub.id });
 
-      if (updateError) {
-        console.error('Error deducting session:', updateError);
+      if (deductError) {
+        console.error('Error deducting session:', deductError);
         // Don't fail the check-in, but log the error
+      } else if (deductResult && typeof deductResult === 'object' && 'success' in deductResult && !deductResult.success) {
+        console.error('Session deduction failed:', (deductResult as { error?: string }).error);
       }
 
       // Update local state
