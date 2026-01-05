@@ -9,6 +9,8 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import GymDetail from "@/pages/GymDetail";
 import Plans from "@/pages/Plans";
 import Profile from "@/pages/Profile";
@@ -97,6 +99,15 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/install" element={<Install />} />
 
       {/* Public Routes with Navbar */}
