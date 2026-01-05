@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,41 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Authentication required' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify the JWT and get user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Invalid or expired authentication token' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Authenticated user:', user.id);
+
     const { 
       razorpay_order_id, 
       razorpay_payment_id, 
@@ -20,10 +56,22 @@ serve(async (req) => {
       plan_type = 'monthly'
     } = await req.json();
 
+    // Verify that the user_id matches the authenticated user (prevent spoofing)
+    if (user_id && user_id !== user.id) {
+      console.error('User ID mismatch - potential spoofing attempt');
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'User ID mismatch' 
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Verifying Razorpay payment:', { 
       order_id: razorpay_order_id, 
       payment_id: razorpay_payment_id,
-      user_id 
+      user_id: user.id 
     });
 
     const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
