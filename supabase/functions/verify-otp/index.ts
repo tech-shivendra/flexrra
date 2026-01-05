@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface VerifyOTPRequest {
-  phone: string;
+  email: string;
   otp: string;
 }
 
@@ -18,11 +18,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { phone, otp }: VerifyOTPRequest = await req.json();
+    const { email, otp }: VerifyOTPRequest = await req.json();
 
-    if (!phone || !otp) {
+    if (!email || !otp) {
       return new Response(
-        JSON.stringify({ error: "Phone and OTP are required" }),
+        JSON.stringify({ error: "Email and OTP are required" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -41,20 +41,20 @@ const handler = async (req: Request): Promise<Response> => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get the stored OTP for this phone
+    // Get the stored OTP for this email
     const { data: otpRecord, error: fetchError } = await supabase
-      .from("phone_otps")
+      .from("email_otps")
       .select("*")
-      .eq("phone", phone)
+      .eq("email", email)
       .eq("verified", false)
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
     if (fetchError || !otpRecord) {
-      console.log("No OTP found for phone:", phone);
+      console.log("No OTP found for email:", email);
       return new Response(
-        JSON.stringify({ error: "No OTP found for this phone number. Please request a new one." }),
+        JSON.stringify({ error: "No OTP found for this email. Please request a new one." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if OTP has expired
     if (new Date(otpRecord.expires_at) < new Date()) {
       // Delete expired OTP
-      await supabase.from("phone_otps").delete().eq("id", otpRecord.id);
+      await supabase.from("email_otps").delete().eq("id", otpRecord.id);
       return new Response(
         JSON.stringify({ error: "OTP has expired. Please request a new one." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -78,9 +78,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // OTP is valid - mark as verified and delete
-    await supabase.from("phone_otps").delete().eq("id", otpRecord.id);
+    await supabase.from("email_otps").delete().eq("id", otpRecord.id);
 
-    console.log(`OTP verified successfully for phone: ${phone}`);
+    console.log(`OTP verified successfully for email: ${email}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP verified successfully" }),

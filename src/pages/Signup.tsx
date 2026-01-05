@@ -44,7 +44,7 @@ const Signup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState<SignupStep>('form');
   const [otp, setOtp] = useState('');
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
@@ -53,30 +53,30 @@ const Signup = () => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
-    // Reset phone verification if phone number changes
-    if (field === 'phone' && isPhoneVerified) {
-      setIsPhoneVerified(false);
+    // Reset email verification if email changes
+    if (field === 'email' && isEmailVerified) {
+      setIsEmailVerified(false);
     }
   };
 
   const sendOTP = async () => {
-    // Validate phone first
-    if (!/^\d{10}$/.test(formData.phone)) {
-      setErrors((prev) => ({ ...prev, phone: 'Phone number must be exactly 10 digits' }));
+    // Validate email first
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrors((prev) => ({ ...prev, email: 'Please enter a valid email address' }));
       return;
     }
 
     setIsSendingOTP(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { phone: formData.phone },
+        body: { email: formData.email },
       });
 
       if (error) throw error;
 
       if (data?.success) {
         setStep('otp');
-        toast.success('OTP sent to your phone number');
+        toast.success('OTP sent to your email address');
       } else {
         toast.error(data?.error || 'Failed to send OTP');
       }
@@ -97,15 +97,15 @@ const Signup = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('verify-otp', {
-        body: { phone: formData.phone, otp },
+        body: { email: formData.email, otp },
       });
 
       if (error) throw error;
 
       if (data?.success) {
-        setIsPhoneVerified(true);
+        setIsEmailVerified(true);
         setStep('form');
-        toast.success('Phone number verified successfully!');
+        toast.success('Email verified successfully!');
       } else {
         toast.error(data?.error || 'Invalid OTP');
       }
@@ -126,9 +126,9 @@ const Signup = () => {
     e.preventDefault();
     setErrors({});
 
-    // Check if phone is verified
-    if (!isPhoneVerified) {
-      toast.error('Please verify your phone number first');
+    // Check if email is verified
+    if (!isEmailVerified) {
+      toast.error('Please verify your email first');
       return;
     }
 
@@ -182,9 +182,9 @@ const Signup = () => {
       </Button>
 
       <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-foreground">Verify your phone</h2>
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Verify your email</h2>
         <p className="text-muted-foreground">
-          We've sent a 6-digit OTP to <span className="font-medium text-foreground">+91 {formData.phone}</span>
+          We've sent a 6-digit OTP to <span className="font-medium text-foreground">{formData.email}</span>
         </p>
       </div>
 
@@ -262,61 +262,61 @@ const Signup = () => {
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
 
-          {/* Email */}
+          {/* Email with OTP verification */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                className="h-11 pl-10"
-                disabled={isLoading}
-              />
-            </div>
-            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-          </div>
-
-          {/* Phone with OTP verification */}
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="phone"
-                  placeholder="10 digit number"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className={`h-11 pl-10 ${isPhoneVerified ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}`}
-                  disabled={isLoading || isPhoneVerified}
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  className={`h-11 pl-10 ${isEmailVerified ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}`}
+                  disabled={isLoading || isEmailVerified}
                 />
-                {isPhoneVerified && (
+                {isEmailVerified && (
                   <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-500" />
                 )}
               </div>
-              {!isPhoneVerified && (
+              {!isEmailVerified && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={sendOTP}
-                  disabled={isSendingOTP || formData.phone.length !== 10}
+                  disabled={isSendingOTP || !formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)}
                   className="h-11 whitespace-nowrap"
                 >
                   {isSendingOTP ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    'Send OTP'
+                    'Verify'
                   )}
                 </Button>
               )}
             </div>
-            {isPhoneVerified && (
-              <p className="text-xs text-green-600">Phone number verified</p>
+            {isEmailVerified && (
+              <p className="text-xs text-green-600">Email verified</p>
             )}
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="phone"
+                placeholder="10 digit number"
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                className="h-11 pl-10"
+                disabled={isLoading}
+              />
+            </div>
             {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
           </div>
 
@@ -417,7 +417,7 @@ const Signup = () => {
           variant="gradient"
           size="lg"
           className="mt-6 w-full"
-          disabled={isLoading || !isPhoneVerified}
+          disabled={isLoading || !isEmailVerified}
         >
           {isLoading ? (
             <>
@@ -432,9 +432,9 @@ const Signup = () => {
           )}
         </Button>
 
-        {!isPhoneVerified && (
+        {!isEmailVerified && (
           <p className="text-center text-sm text-amber-600 dark:text-amber-400">
-            Please verify your phone number to create an account
+            Please verify your email to create an account
           </p>
         )}
       </form>
