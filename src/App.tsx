@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
@@ -13,6 +14,7 @@ import Plans from "@/pages/Plans";
 import Profile from "@/pages/Profile";
 import History from "@/pages/History";
 import ScanCheckIn from "@/pages/ScanCheckIn";
+import Install from "@/pages/Install";
 import NotFound from "./pages/NotFound";
 
 // Admin imports
@@ -70,6 +72,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     <>
       <Navbar />
       {children}
+      <InstallPrompt />
     </>
   );
 };
@@ -94,6 +97,7 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
+      <Route path="/install" element={<Install />} />
 
       {/* Public Routes with Navbar */}
       <Route
