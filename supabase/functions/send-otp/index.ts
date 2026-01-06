@@ -121,9 +121,13 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Resend error:", emailError);
       // Clean up the stored OTP if email failed
       await supabase.from("email_otps").delete().eq("email", email);
+
+      const status = typeof (emailError as any)?.statusCode === "number" ? (emailError as any).statusCode : 500;
+      const message = (emailError as any)?.message || "Failed to send OTP email. Please try again.";
+
       return new Response(
-        JSON.stringify({ error: "Failed to send OTP email. Please try again." }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: message }),
+        { status, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
