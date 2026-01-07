@@ -186,12 +186,14 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="bg-card/50 border-y border-border py-12">
-        <div className="container mx-auto px-4">
-          <StatsCounter stats={stats} />
+      {/* Stats Section - Hide when searching */}
+      {!searchQuery && (
+        <div className="bg-card/50 border-y border-border py-12">
+          <div className="container mx-auto px-4">
+            <StatsCounter stats={stats} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Gym Grid */}
       <div id="gym-grid" className="container mx-auto px-4 py-8">
