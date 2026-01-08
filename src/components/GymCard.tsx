@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Gym } from '@/hooks/useGyms';
+import { MapPin, Clock } from 'lucide-react';
 
 interface GymCardProps {
   gym: Gym;
@@ -48,13 +49,13 @@ const GymCard = ({ gym }: GymCardProps) => {
         <div className="p-4">
           {/* Address */}
           <div className="mb-3 flex items-start gap-2 text-sm text-muted-foreground">
-            <span className="shrink-0">📍</span>
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <span className="line-clamp-1">{gym.address}</span>
           </div>
 
           {/* Timings */}
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <span>🕐</span>
+            <Clock className="h-4 w-4 text-secondary" />
             <span>
               {gym.openTime} - {gym.closeTime}
             </span>

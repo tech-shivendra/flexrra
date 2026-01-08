@@ -1,7 +1,9 @@
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useCountUp } from '@/hooks/useCountUp';
+import { LucideIcon } from 'lucide-react';
 
 interface StatItemProps {
+  icon: LucideIcon;
   end: number;
   suffix?: string;
   label: string;
@@ -9,7 +11,7 @@ interface StatItemProps {
   isVisible: boolean;
 }
 
-const StatItem = ({ end, suffix = '', label, delay = 0, isVisible }: StatItemProps) => {
+const StatItem = ({ icon: Icon, end, suffix = '', label, delay = 0, isVisible }: StatItemProps) => {
   const count = useCountUp({ end, duration: 2000, enabled: isVisible });
 
   return (
@@ -21,16 +23,20 @@ const StatItem = ({ end, suffix = '', label, delay = 0, isVisible }: StatItemPro
         transform: isVisible ? 'translateY(0)' : 'translateY(16px)'
       }}
     >
-      <div className="text-4xl font-bold text-foreground md:text-5xl">
+      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/20 text-primary">
+        <Icon className="h-7 w-7" />
+      </div>
+      <div className="text-3xl font-bold text-foreground md:text-4xl">
         {count}{suffix}
       </div>
-      <div className="mt-2 text-sm text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
     </div>
   );
 };
 
 interface StatsCounterProps {
   stats: {
+    icon: LucideIcon;
     end: number;
     suffix?: string;
     label: string;
@@ -48,6 +54,7 @@ const StatsCounter = ({ stats }: StatsCounterProps) => {
       {stats.map((stat, index) => (
         <StatItem
           key={stat.label}
+          icon={stat.icon}
           end={stat.end}
           suffix={stat.suffix}
           label={stat.label}

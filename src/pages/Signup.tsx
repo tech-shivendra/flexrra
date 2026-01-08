@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import logo from '@/assets/logo.png';
 
@@ -139,57 +139,69 @@ const Signup = () => {
               {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
               </div>
 
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleChange('email', e.target.value)}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
 
               {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  placeholder="10 digit number"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    placeholder="10 digit number"
+                    value={formData.phone}
+                    onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
               </div>
 
               {/* Home Area */}
               <div className="space-y-2">
                 <Label htmlFor="homeArea">City / Area</Label>
-                <Input
-                  id="homeArea"
-                  placeholder="Delhi, Mumbai..."
-                  value={formData.homeArea}
-                  onChange={(e) => handleChange('homeArea', e.target.value)}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="homeArea"
+                    placeholder="Delhi, Mumbai..."
+                    value={formData.homeArea}
+                    onChange={(e) => handleChange('homeArea', e.target.value)}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.homeArea && <p className="text-xs text-destructive">{errors.homeArea}</p>}
               </div>
 
@@ -234,30 +246,36 @@ const Signup = () => {
               {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Min 6 characters"
-                  value={formData.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Min 6 characters"
+                    value={formData.password}
+                    onChange={(e) => handleChange('password', e.target.value)}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
               </div>
 
               {/* Confirm Password */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Repeat password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                  className="h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Repeat password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                    className="h-11 pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
               </div>
             </div>
@@ -275,7 +293,10 @@ const Signup = () => {
                   Creating account...
                 </>
               ) : (
-                'Create Account'
+                <>
+                  Create Account
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
               )}
             </Button>
           </form>
