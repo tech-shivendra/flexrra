@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { SubscriptionActionDialog } from '@/components/SubscriptionActionDialog';
+import { EditProfileDialog } from '@/components/EditProfileDialog';
 import { toast } from 'sonner';
 import {
   User,
@@ -36,6 +37,7 @@ const Profile = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<'pause' | 'resume'>('pause');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (!user) {
     navigate('/login');
@@ -206,7 +208,7 @@ const Profile = () => {
           <div className="mb-6 rounded-2xl border border-border bg-card p-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground">Personal Information</h3>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => setEditDialogOpen(true)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
@@ -289,6 +291,15 @@ const Profile = () => {
           </Button>
         </div>
       </div>
+
+      {/* Edit Profile Dialog */}
+      {user && (
+        <EditProfileDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          user={user}
+        />
+      )}
     </div>
   );
 };
