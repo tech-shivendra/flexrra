@@ -5,19 +5,6 @@ import { Button } from '@/components/ui/button';
 import { SubscriptionActionDialog } from '@/components/SubscriptionActionDialog';
 import { EditProfileDialog } from '@/components/EditProfileDialog';
 import { toast } from 'sonner';
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  CreditCard,
-  Pause,
-  Play,
-  LogOut,
-  Loader2,
-  Edit,
-} from 'lucide-react';
 import { useState } from 'react';
 
 const Profile = () => {
@@ -123,8 +110,8 @@ const Profile = () => {
           <div className="mb-6 rounded-2xl border border-border bg-card p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <CreditCard className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xl">
+                  💳
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Subscription</h3>
@@ -142,9 +129,8 @@ const Profile = () => {
 
             {subscriptionStatus !== 'inactive' && (
               <>
-                <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  {subscriptionStatus === 'active' ? 'Expires' : 'Paused until'}: {formatDate(subscriptionEndDate)}
+                <div className="mb-4 text-sm text-muted-foreground">
+                  📅 {subscriptionStatus === 'active' ? 'Expires' : 'Paused until'}: {formatDate(subscriptionEndDate)}
                 </div>
 
                 <div className="flex gap-3">
@@ -156,8 +142,7 @@ const Profile = () => {
                         onClick={openPauseDialog}
                         disabled={isLoading || actionLoading !== null || !canPause}
                       >
-                        <Pause className="mr-2 h-4 w-4" />
-                        Pause
+                        ⏸️ Pause
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
                         {daysUntilCanPause > 0 
@@ -175,8 +160,7 @@ const Profile = () => {
                       onClick={openResumeDialog}
                       disabled={isLoading || actionLoading !== null}
                     >
-                      <Play className="mr-2 h-4 w-4" />
-                      Resume
+                      ▶️ Resume
                     </Button>
                   )}
                 </div>
@@ -209,15 +193,14 @@ const Profile = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground">Personal Information</h3>
               <Button variant="ghost" size="sm" onClick={() => setEditDialogOpen(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
+                ✏️ Edit
               </Button>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                  <User className="h-5 w-5 text-accent-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-lg">
+                  👤
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Full Name</p>
@@ -226,8 +209,8 @@ const Profile = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                  <Mail className="h-5 w-5 text-accent-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-lg">
+                  ✉️
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
@@ -236,8 +219,8 @@ const Profile = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                  <Phone className="h-5 w-5 text-accent-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-lg">
+                  📱
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone</p>
@@ -246,8 +229,8 @@ const Profile = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                  <MapPin className="h-5 w-5 text-accent-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-lg">
+                  📍
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Home Area</p>
@@ -286,8 +269,7 @@ const Profile = () => {
             className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-5 w-5" />
-            Logout
+            🚪 Logout
           </Button>
         </div>
       </div>

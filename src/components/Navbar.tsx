@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { Home, CreditCard, User, History, Menu, X, LogOut, QrCode, Shield, LogIn } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import logo from '@/assets/logo-white.png';
@@ -22,17 +22,17 @@ const Navbar = () => {
   };
 
   const publicNavLinks = [
-    { to: '/', label: 'Home', icon: Home },
-    { to: '/plans', label: 'Plans', icon: CreditCard },
+    { to: '/', label: 'Home' },
+    { to: '/plans', label: 'Plans' },
   ];
 
   const authNavLinks = [
-    { to: '/', label: 'Home', icon: Home },
-    { to: '/scan', label: 'Check In', icon: QrCode },
-    { to: '/plans', label: 'Plans', icon: CreditCard },
-    { to: '/profile', label: 'Profile', icon: User },
-    { to: '/history', label: 'History', icon: History },
-    ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
+    { to: '/', label: 'Home' },
+    { to: '/scan', label: 'Check In' },
+    { to: '/plans', label: 'Plans' },
+    { to: '/profile', label: 'Profile' },
+    { to: '/history', label: 'History' },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : []),
   ];
 
   const navLinks = user ? authNavLinks : publicNavLinks;
@@ -47,7 +47,7 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
-          {navLinks.map(({ to, label, icon: Icon }) => (
+          {navLinks.map(({ to, label }) => (
             <Link
               key={to}
               to={to}
@@ -57,7 +57,6 @@ const Navbar = () => {
                   : 'text-white/80 hover:bg-white/10 hover:text-white'
               }`}
             >
-              <Icon className="h-4 w-4" />
               {label}
             </Link>
           ))}
@@ -73,7 +72,7 @@ const Navbar = () => {
                 <span className="text-sm font-medium text-white">{user.name}</span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-                <LogOut className="h-4 w-4" />
+                Logout
               </Button>
             </>
           ) : (
@@ -83,7 +82,6 @@ const Navbar = () => {
               onClick={() => navigate('/login')}
               className="bg-white/20 text-white hover:bg-white/30 border-0"
             >
-              <LogIn className="mr-2 h-4 w-4" />
               Login
             </Button>
           )}
@@ -100,7 +98,7 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="absolute left-0 right-0 top-16 border-b border-white/10 bg-primary/80 backdrop-blur-xl p-4 shadow-lg md:hidden animate-fade-in">
           <div className="flex flex-col gap-2">
-            {navLinks.map(({ to, label, icon: Icon }) => (
+            {navLinks.map(({ to, label }) => (
               <Link
                 key={to}
                 to={to}
@@ -111,7 +109,6 @@ const Navbar = () => {
                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <Icon className="h-5 w-5" />
                 {label}
               </Link>
             ))}
@@ -125,7 +122,6 @@ const Navbar = () => {
                   <span className="text-sm font-medium text-white">{user.name}</span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/10 hover:text-white">
-                  <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </div>
@@ -138,7 +134,6 @@ const Navbar = () => {
                   setIsMenuOpen(false);
                 }}
               >
-                <LogIn className="mr-2 h-4 w-4" />
                 Login
               </Button>
             )}

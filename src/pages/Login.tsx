@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import logo from '@/assets/logo.png';
 import logoWhite from '@/assets/logo-white.png';
@@ -27,7 +27,6 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
 
-    // Validate inputs
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {};
@@ -47,7 +46,6 @@ const Login = () => {
       toast.success('Welcome back!');
       navigate('/');
     } else {
-      // Handle specific error messages
       if (error?.includes('Invalid login credentials')) {
         toast.error('Invalid email or password. Please try again.');
       } else if (error?.includes('Email not confirmed')) {
@@ -93,18 +91,15 @@ const Login = () => {
               <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 pl-10"
-                  disabled={isLoading}
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12"
+                disabled={isLoading}
+              />
               {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
             </div>
 
@@ -120,18 +115,15 @@ const Login = () => {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 pl-10"
-                  disabled={isLoading}
-                />
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12"
+                disabled={isLoading}
+              />
               {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
@@ -148,10 +140,7 @@ const Login = () => {
                   Signing in...
                 </>
               ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </>
+                'Sign In'
               )}
             </Button>
           </form>

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCheckIn } from '@/hooks/useCheckIn';
-import { Calendar, Clock, MapPin, Loader2, Dumbbell, TrendingUp } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const History = () => {
   const { user } = useAuth();
@@ -52,8 +52,8 @@ const History = () => {
                 <p className="text-4xl font-bold">{workoutsThisMonth}</p>
                 <p className="text-sm text-primary-foreground/80">workouts completed</p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/20">
-                <TrendingUp className="h-8 w-8" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-foreground/20 text-3xl">
+                📈
               </div>
             </div>
           </div>
@@ -84,29 +84,26 @@ const History = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl">
-                        <Dumbbell className="h-6 w-6 text-primary" />
+                        🏋️
                       </div>
                       <div>
                         <h4 className="font-semibold text-foreground">
                           {checkIn.gym_name || 'Gym Workout'}
                         </h4>
                         {checkIn.gym_address && (
-                          <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            {checkIn.gym_address}
-                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            📍 {checkIn.gym_address}
+                          </p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-                        <Calendar className="h-3 w-3" />
+                      <p className="text-sm font-medium text-foreground">
                         {formatDate(checkIn.check_in_time)}
-                      </div>
-                      <div className="mt-1 flex items-center justify-end gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {formatTime(checkIn.check_in_time)}
-                      </div>
+                      </p>
                     </div>
                   </div>
                 </div>
