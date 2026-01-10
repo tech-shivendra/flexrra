@@ -373,10 +373,6 @@ const Plans = () => {
             <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
               selectedPlan === 'monthly' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
             }`}>
-              {/* Luxury Float Badge */}
-              <div className="absolute -left-8 top-6 -rotate-45 bg-gradient-to-r from-amber-500 to-yellow-400 px-10 py-1 text-xs font-semibold text-white shadow-md">
-                LUXURY FLOAT
-              </div>
               <div className="p-6">
                 <div className="mb-4 text-center">
                   <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -439,10 +435,6 @@ const Plans = () => {
             <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
               selectedPlan === 'annual' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
             }`}>
-              {/* Luxury Float Badge */}
-              <div className="absolute -left-8 top-6 -rotate-45 bg-gradient-to-r from-amber-500 to-yellow-400 px-10 py-1 text-xs font-semibold text-white shadow-md">
-                LUXURY FLOAT
-              </div>
               {/* Best Value Badge */}
               <div className="absolute -right-8 top-6 rotate-45 gradient-primary px-10 py-1 text-xs font-semibold text-primary-foreground">
                 BEST VALUE
