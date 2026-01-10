@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
+import ParticleField from '@/components/ParticleField';
 import { useParallax } from '@/hooks/useParallax';
 const stats = [{
   icon: Building2,
@@ -86,6 +87,9 @@ const Home = () => {
         <div style={{ transform: `translateY(${scrollY * 0.15}px)` }}>
           <FloatingShapes />
         </div>
+
+        {/* Particle Field */}
+        <ParticleField />
 
         {/* Hero Content with Parallax */}
         <div 
