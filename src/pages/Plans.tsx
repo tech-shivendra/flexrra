@@ -370,9 +370,10 @@ const Plans = () => {
           {/* Plan Cards */}
           <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
             {/* Monthly Plan */}
-            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
-              selectedPlan === 'monthly' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
-            }`}>
+            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 cursor-pointer ${
+              selectedPlan === 'monthly' ? 'border-primary scale-[1.02]' : 'border-border opacity-80 hover:opacity-100 hover:border-primary/50'
+            }`}
+            onClick={() => setSelectedPlan('monthly')}>
               <div className="p-6">
                 <div className="mb-4 text-center">
                   <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -432,9 +433,10 @@ const Plans = () => {
             </div>
 
             {/* Annual Plan */}
-            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 ${
-              selectedPlan === 'annual' ? 'border-primary scale-[1.02]' : 'border-border opacity-80'
-            }`}>
+            <div className={`relative overflow-hidden rounded-2xl border-2 bg-card shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 cursor-pointer ${
+              selectedPlan === 'annual' ? 'border-primary scale-[1.02]' : 'border-border opacity-80 hover:opacity-100 hover:border-primary/50'
+            }`}
+            onClick={() => setSelectedPlan('annual')}>
               {/* Best Value Badge */}
               <div className="absolute -right-8 top-6 rotate-45 gradient-primary px-10 py-1 text-xs font-semibold text-primary-foreground">
                 BEST VALUE
