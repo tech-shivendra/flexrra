@@ -6,7 +6,7 @@ import AnimatedCard from '@/components/AnimatedCard';
 import StatsCounter from '@/components/StatsCounter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Loader2, Dumbbell, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Loader2, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
 import { useParallax } from '@/hooks/useParallax';
@@ -122,32 +122,43 @@ const Home = () => {
               <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in" style={{
               animationDelay: '300ms'
             }}>
-                <Button size="xl" className="rounded-full px-10 py-6 text-lg font-semibold shadow-2xl shadow-primary/30 hover:scale-105 hover:shadow-primary/50 transition-all duration-300" onClick={() => navigate('/plans')}>
-                  <Dumbbell className="mr-2 h-5 w-5" />
-                  Start Your Journey
+                <Button 
+                  size="xl" 
+                  className="group relative rounded-full px-12 py-7 text-lg font-semibold overflow-hidden bg-white text-foreground hover:text-foreground shadow-2xl hover:shadow-white/30 transition-all duration-500 hover:scale-[1.02]" 
+                  onClick={() => navigate('/plans')}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Get Started
+                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </span>
                 </Button>
-                <Button variant="outline" size="xl" className="rounded-full px-10 py-6 text-lg font-semibold border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-md hover:scale-105 transition-all duration-300" onClick={() => document.getElementById('gym-grid')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Explore Gyms
+                <Button 
+                  variant="ghost" 
+                  size="xl" 
+                  className="rounded-full px-12 py-7 text-lg font-medium text-white/90 hover:text-white hover:bg-white/10 transition-all duration-300" 
+                  onClick={() => document.getElementById('gym-grid')?.scrollIntoView({
+                  behavior: 'smooth'
+                })}
+                >
+                  View All Gyms
                 </Button>
               </div>
 
-              {/* Trust Badges */}
-              <div className="mt-10 flex flex-wrap justify-center gap-6 animate-fade-in" style={{
+              {/* Trust Indicators */}
+              <div className="mt-12 flex flex-wrap justify-center gap-8 animate-fade-in" style={{
               animationDelay: '400ms'
             }}>
-                <div className="flex items-center gap-2 text-white/70">
-                  <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-sm">No hidden fees</span>
+                <div className="flex items-center gap-2 text-white/60 text-sm tracking-wide">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  No commitment
                 </div>
-                <div className="flex items-center gap-2 text-white/70">
-                  <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-sm">Cancel anytime</span>
+                <div className="flex items-center gap-2 text-white/60 text-sm tracking-wide">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Cancel anytime
                 </div>
-                <div className="flex items-center gap-2 text-white/70">
-                  <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-sm">Instant access</span>
+                <div className="flex items-center gap-2 text-white/60 text-sm tracking-wide">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  20+ gyms included
                 </div>
               </div>
             </div>
