@@ -358,3 +358,24 @@
 .animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
 }
+
+@keyframes particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-30px) translateX(10px);
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.5;
+  }
+}
+
+.animate-particle {
+  animation: particle ease-in-out infinite;
+}
