@@ -96,9 +96,11 @@ const Home = () => {
             <div className="mb-12 text-center max-w-4xl mx-auto">
               {/* Badge */}
               <div className="mb-6 animate-fade-in">
-                <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 border border-primary/30 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-md shadow-lg">
-                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                  Premium Fitness Network
+                <span className="group relative inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-xl shadow-lg overflow-hidden">
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                  <Sparkles className="h-4 w-4 text-primary relative z-10" />
+                  <span className="relative z-10">Premium Fitness Network</span>
                 </span>
               </div>
               
