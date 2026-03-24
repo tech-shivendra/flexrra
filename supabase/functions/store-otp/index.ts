@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`OTP generated for ${email}`);
 
     return new Response(
-      JSON.stringify({ success: true, otp }),
+      JSON.stringify({ success: true }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
