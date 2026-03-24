@@ -84,51 +84,33 @@ export const useSubscription = () => {
     setError(null);
     
     try {
-      const endDate = new Date();
-      const daysToAdd = planType === 'annual' ? 365 : 30;
-      endDate.setDate(endDate.getDate() + daysToAdd);
-      
-      const subscriptionPrice = price ?? (planType === 'annual' ? 14999 : 1499);
-      
-      // Insert subscription record with coupon info if provided
-      const subscriptionRecord: {
-        user_id: string;
-        plan: string;
-        price: number;
-        status: string;
-        end_date: string;
-        razorpay_order_id: string | null;
-        razorpay_payment_id: string | null;
-        coupon_code?: string;
-        original_price?: number;
-        discount_percent?: number;
-      } = {
-        user_id: user.id,
-        plan: planType,
-        price: subscriptionPrice,
-        status: 'active',
-        end_date: endDate.toISOString(),
+      const body: Record<string, unknown> = {
         razorpay_order_id: razorpayOrderId || null,
         razorpay_payment_id: razorpayPaymentId || null,
+        plan_type: planType,
+        price: price ?? (planType === 'annual' ? 14999 : 1499),
       };
 
-      // Add coupon info if coupon was applied
       if (couponInfo) {
-        subscriptionRecord.coupon_code = couponInfo.code;
-        subscriptionRecord.original_price = couponInfo.originalPrice;
-        subscriptionRecord.discount_percent = couponInfo.discount;
+        body.coupon_code = couponInfo.code;
+        body.original_price = couponInfo.originalPrice;
+        body.discount_percent = couponInfo.discount;
       }
 
-      const { error: insertError } = await supabase
-        .from('subscriptions')
-        .insert(subscriptionRecord);
+      const { data, error: fnError } = await supabase.functions.invoke('create-subscription', {
+        body,
+      });
 
-      if (insertError) {
-        throw new Error(insertError.message);
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to create subscription');
       }
 
-      // Update profile subscription status
-      await updateSubscription('active', endDate.toISOString());
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create subscription');
+      }
+
+      // Update profile subscription status locally
+      await updateSubscription('active', data.end_date);
       
       return { success: true };
     } catch (err: unknown) {
