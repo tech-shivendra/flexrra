@@ -1,0 +1,16 @@
+# Flexrra
+
+> One subscription gives you access to 20+ premium partner gyms across Lucknow. Pause anytime, no commitment, cancel whenever.
+
+Flexrra is a multi-gym membership service. Members pay a single monthly or annual fee and check in at any partner gym using a QR-code system.
+
+## Pages
+
+- [Home](/): Browse partner gyms in Lucknow and learn how Flexrra works.
+- [Membership Plans](/plans): Monthly and annual pricing, included benefits, and FAQs.
+- [Install App](/install): Install the Flexrra progressive web app on mobile.
+
+## Optional
+
+- [Sign in](/login): Existing member sign in.
+- [Create account](/signup): New member sign up.

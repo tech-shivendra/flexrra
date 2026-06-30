@@ -7,6 +7,7 @@ import StatsCounter from '@/components/StatsCounter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, Loader2, Sparkles, Building2, Users, Trophy, Clock, ChevronDown } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import heroVideo from '@/assets/gym-hero-video.mp4';
 import FloatingShapes from '@/components/FloatingShapes';
 import ParticleField from '@/components/ParticleField';
@@ -61,6 +62,15 @@ const Home = () => {
     setFilteredGyms(filtered);
   }, [gyms, searchQuery]);
   return <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Flexrra — One Membership, 20+ Gyms in Lucknow</title>
+        <meta name="description" content="Access 20+ premium gyms in Lucknow with a single Flexrra subscription. Pause anytime, no commitment, work out whenever and wherever you want." />
+        <link rel="canonical" href="https://flexrra.lovable.app/" />
+        <meta property="og:title" content="Flexrra — One Membership, 20+ Gyms in Lucknow" />
+        <meta property="og:description" content="One subscription, unlimited gym access across Lucknow." />
+        <meta property="og:url" content="https://flexrra.lovable.app/" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Hero Section with Video */}
       <div className="relative min-h-[85vh] flex items-center overflow-hidden">
         {/* Video Background with Parallax */}
@@ -218,7 +228,7 @@ const Home = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div> : filteredGyms.length === 0 ? <div className="py-20 text-center">
             <div className="mb-4 text-5xl">🏋️</div>
-            <h3 className="mb-2 text-xl font-semibold text-foreground">No gyms found</h3>
+            <h2 className="mb-2 text-xl font-semibold text-foreground">No gyms found</h2>
             <p className="text-muted-foreground">
               {searchQuery ? `No gyms matching "${searchQuery}"` : selectedCity !== 'All' ? `No gyms available in ${selectedCity}` : 'No gyms have been added yet. Check back soon!'}
             </p>

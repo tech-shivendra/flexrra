@@ -20,6 +20,7 @@ import {
   Calendar,
   Tag,
 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const MONTHLY_PRICE = 1499;
 const ANNUAL_PRICE = 14999; // ~17% discount (12 months would be 17,988)
@@ -202,6 +203,26 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-background py-8">
+      <Helmet>
+        <title>Gym Membership Plans — Flexrra</title>
+        <meta name="description" content="Choose a monthly or annual Flexrra membership and unlock 20+ partner gyms in Lucknow. Pause anytime, no hidden fees, cancel whenever you like." />
+        <link rel="canonical" href="https://flexrra.lovable.app/plans" />
+        <meta property="og:title" content="Gym Membership Plans — Flexrra" />
+        <meta property="og:description" content="Monthly or annual access to 20+ gyms in Lucknow with one Flexrra subscription." />
+        <meta property="og:url" content="https://flexrra.lovable.app/plans" />
+        <meta property="og:type" content="product" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "Flexrra Multi-Gym Membership",
+          description: "One subscription for 20+ partner gyms in Lucknow. Pause anytime.",
+          brand: { "@type": "Brand", name: "Flexrra" },
+          offers: [
+            { "@type": "Offer", name: "Monthly Pass", price: MONTHLY_PRICE, priceCurrency: "INR", availability: "https://schema.org/InStock", url: "https://flexrra.lovable.app/plans" },
+            { "@type": "Offer", name: "Annual Pass", price: ANNUAL_PRICE, priceCurrency: "INR", availability: "https://schema.org/InStock", url: "https://flexrra.lovable.app/plans" }
+          ]
+        })}</script>
+      </Helmet>
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-foreground md:text-4xl">
@@ -217,7 +238,7 @@ const Plans = () => {
           {user && subscriptionStatus !== 'inactive' && (
             <div className="mb-6 rounded-2xl border border-border bg-card p-6 animate-fade-in max-w-lg mx-auto">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground">Current Status</h3>
+                <h2 className="font-semibold text-foreground">Current Status</h2>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     subscriptionStatus === 'active'
@@ -524,7 +545,7 @@ const Plans = () => {
 
           {/* FAQs */}
           <div className="mt-12 space-y-4 max-w-lg mx-auto">
-            <h3 className="text-center font-semibold text-foreground">Common Questions</h3>
+            <h2 className="text-center font-semibold text-foreground">Common Questions</h2>
             <div className="space-y-3">
               {[
                 {
