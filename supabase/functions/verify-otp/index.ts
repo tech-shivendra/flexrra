@@ -71,8 +71,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Verify OTP
     if (otpRecord.otp !== otp) {
+      const newAttempts = (otpRecord.attempts ?? 0) + 1;
+      const MAX_ATTEMPTS = 5;
+      if (newAttempts >= MAX_ATTEMPTS) {
+        await supabase.from("email_otps").delete().eq("id", otpRecord.id);
+        return new Response(
+          JSON.stringify({ error: "Too many failed attempts. Please request a new code." }),
+          { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      await supabase
+        .from("email_otps")
+        .update({ attempts: newAttempts })
+        .eq("id", otpRecord.id);
       return new Response(
-        JSON.stringify({ error: "Invalid OTP. Please try again." }),
+        JSON.stringify({ error: `Invalid OTP. ${MAX_ATTEMPTS - newAttempts} attempt(s) remaining.` }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

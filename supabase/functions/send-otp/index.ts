@@ -57,6 +57,23 @@ const handler = async (req: Request): Promise<Response> => {
     // Initialize Resend
     const resend = new Resend(resendApiKey);
 
+    // Rate limit: max 3 OTPs per email in the last 10 minutes
+    const windowStart = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count: recentCount, error: countError } = await supabase
+      .from("email_otps")
+      .select("id", { count: "exact", head: true })
+      .eq("email", email)
+      .gte("created_at", windowStart);
+
+    if (countError) {
+      console.error("Rate limit query error:", countError);
+    } else if ((recentCount ?? 0) >= 3) {
+      return new Response(
+        JSON.stringify({ error: "Too many OTP requests. Please try again in a few minutes." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Generate OTP
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes expiry
