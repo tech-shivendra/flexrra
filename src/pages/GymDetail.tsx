@@ -13,6 +13,7 @@ import {
   Dumbbell,
   Sparkles,
 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const facilityIcons: { [key: string]: string } = {
   Weights: '🏋️',
@@ -91,6 +92,31 @@ const GymDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
+      <Helmet>
+        <title>{`${gym.name} — Flexrra Partner Gym in ${gym.city}`}</title>
+        <meta name="description" content={`Visit ${gym.name} in ${gym.city}. Open ${gym.openTime}–${gym.closeTime}. Included with your Flexrra multi-gym membership.`} />
+        <link rel="canonical" href={`https://flexrra.lovable.app/gym/${gym._id}`} />
+        <meta property="og:title" content={`${gym.name} — Flexrra Partner Gym`} />
+        <meta property="og:description" content={`${gym.name} in ${gym.city}, included with your Flexrra membership.`} />
+        <meta property="og:url" content={`https://flexrra.lovable.app/gym/${gym._id}`} />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "HealthClub",
+          name: gym.name,
+          telephone: gym.phone,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: gym.address,
+            addressLocality: gym.city,
+            postalCode: gym.pincode,
+            addressCountry: "IN"
+          },
+          openingHours: `Mo-Su ${gym.openTime}-${gym.closeTime}`,
+          url: `https://flexrra.lovable.app/gym/${gym._id}`,
+          image: gym.gallery?.[0]
+        })}</script>
+      </Helmet>
       {/* Header */}
       <div className="gradient-hero pb-12 pt-6">
         <div className="container mx-auto px-4">
@@ -124,7 +150,7 @@ const GymDetail = () => {
                   <div className="mb-3 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-success/10">
                     <Check className="h-8 w-8 text-success" />
                   </div>
-                  <h3 className="mb-1 font-semibold text-foreground">Active Subscription</h3>
+                  <h2 className="mb-1 font-semibold text-foreground">Active Subscription</h2>
                   <p className="mb-4 text-sm text-muted-foreground">
                     Scan QR code at the gym to check in
                   </p>
@@ -143,7 +169,7 @@ const GymDetail = () => {
                   <div className="mb-3 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-accent">
                     <Sparkles className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="mb-1 font-semibold text-foreground">Get Access</h3>
+                  <h2 className="mb-1 font-semibold text-foreground">Get Access</h2>
                   <p className="mb-4 text-sm text-muted-foreground">
                     Subscribe to check in at this gym
                   </p>
@@ -169,10 +195,10 @@ const GymDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Timings */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                 <Clock className="h-5 w-5 text-primary" />
                 Opening Hours
-              </h3>
+              </h2>
               <div className="flex items-center gap-4">
                 <div className="rounded-lg bg-accent px-4 py-2 text-center">
                   <p className="text-xs text-muted-foreground">Opens</p>
@@ -188,7 +214,7 @@ const GymDetail = () => {
 
             {/* Facilities */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">Facilities</h3>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Facilities</h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {gym.facilities.map((facility) => (
                   <div
@@ -204,7 +230,7 @@ const GymDetail = () => {
 
             {/* Amenities */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">Amenities</h3>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Amenities</h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {gym.amenities.map((amenity) => (
                   <div
@@ -223,7 +249,7 @@ const GymDetail = () => {
           <div className="space-y-6">
             {/* Contact */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">Contact</h3>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Contact</h2>
               <a
                 href={`tel:${gym.phone}`}
                 className="flex items-center gap-3 rounded-lg bg-accent px-4 py-3 transition-colors hover:bg-accent/80"
@@ -235,7 +261,7 @@ const GymDetail = () => {
 
             {/* Gallery */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">Gallery</h3>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Gallery</h2>
               <div className="grid grid-cols-2 gap-2">
                 {gym.gallery.map((image, i) => (
                   <div
