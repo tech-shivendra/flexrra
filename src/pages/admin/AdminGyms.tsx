@@ -85,13 +85,9 @@ const AdminGyms = () => {
   const fetchGyms = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('gyms')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await (supabase as any).rpc('admin_list_gyms');
       if (error) throw error;
-      setGyms(data || []);
+      setGyms((data as Gym[]) || []);
     } catch (error) {
       console.error('Error fetching gyms:', error);
       toast.error('Failed to fetch gyms');

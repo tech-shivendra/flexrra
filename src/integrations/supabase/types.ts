@@ -100,6 +100,7 @@ export type Database = {
       }
       email_otps: {
         Row: {
+          attempts: number
           created_at: string
           email: string
           expires_at: string
@@ -108,6 +109,7 @@ export type Database = {
           verified: boolean
         }
         Insert: {
+          attempts?: number
           created_at?: string
           email: string
           expires_at: string
@@ -116,6 +118,7 @@ export type Database = {
           verified?: boolean
         }
         Update: {
+          attempts?: number
           created_at?: string
           email?: string
           expires_at?: string
@@ -381,10 +384,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_gyms: {
+        Args: never
+        Returns: {
+          address: string
+          amenities: string[] | null
+          city: string
+          close_time: string
+          created_at: string
+          facilities: string[] | null
+          id: string
+          name: string
+          open_time: string
+          phone: string | null
+          pincode: string | null
+          qr_code: string
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "gyms"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_regenerate_gym_qr: { Args: { p_gym_id: string }; Returns: Json }
       deduct_session: { Args: { p_subscription_id: string }; Returns: Json }
       is_admin: { Args: { user_email: string }; Returns: boolean }
+      manual_check_in: { Args: { p_gym_id: string }; Returns: Json }
       pause_subscription: { Args: never; Returns: Json }
+      qr_check_in: { Args: { p_qr_code: string }; Returns: Json }
       resume_subscription: { Args: never; Returns: Json }
+      validate_coupon: {
+        Args: { p_code: string }
+        Returns: {
+          code: string
+          discount_percent: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

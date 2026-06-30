@@ -57,83 +57,23 @@ export const useCheckIn = () => {
     setError(null);
 
     try {
-      // Fetch subscription status
-      const sub = await fetchSubscription();
-      
-      if (!sub) {
-        return { success: false, error: 'No active subscription found. Please purchase a plan.' };
+      // Server-side validation: subscription, gym, duplicate check, session deduction
+      const { data, error: rpcError } = await (supabase as any)
+        .rpc('qr_check_in', { p_qr_code: qrCode });
+
+      if (rpcError) throw new Error(rpcError.message);
+      const result = data as { success: boolean; error?: string; gym?: any; remaining_sessions?: number };
+      if (!result?.success) {
+        return { success: false, error: result?.error || 'Check-in failed' };
       }
 
-      if (sub.remaining_sessions <= 0) {
-        return { success: false, error: 'No sessions remaining. Please renew your subscription.' };
-      }
+      setSubscription((prev) => prev ? { ...prev, remaining_sessions: result.remaining_sessions! } : prev);
+      await fetchHistory();
 
-      // Find gym by QR code
-      const { data: gym, error: gymError } = await supabase
-        .from('gyms')
-        .select('*')
-        .eq('qr_code', qrCode)
-        .maybeSingle();
-
-      if (gymError || !gym) {
-        return { success: false, error: 'Invalid QR code. Gym not found.' };
-      }
-
-      // Check if already checked in today at this gym
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { data: existingCheckIn } = await supabase
-        .from('check_ins')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('gym_id', gym.id)
-        .gte('check_in_time', today.toISOString())
-        .maybeSingle();
-
-      if (existingCheckIn) {
-        return { success: false, error: 'You have already checked in at this gym today!' };
-      }
-
-      // Create check-in record
-      const { data: checkInData, error: checkInError } = await supabase
-        .from('check_ins')
-        .insert({
-          user_id: user.id,
-          gym_id: gym.id,
-          gym_name: gym.name,
-          gym_address: gym.address,
-          gym_city: gym.city,
-          check_in_type: 'qr',
-          status: 'checkedIn',
-          session_deducted: true,
-        })
-        .select()
-        .single();
-
-      if (checkInError) {
-        throw new Error(checkInError.message);
-      }
-
-      // Deduct session using secure RPC function
-      const { data: deductResult, error: deductError } = await supabase
-        .rpc('deduct_session', { p_subscription_id: sub.id });
-
-      if (deductError) {
-        console.error('Error deducting session:', deductError);
-        // Don't fail the check-in, but log the error
-      } else if (deductResult && typeof deductResult === 'object' && 'success' in deductResult && !deductResult.success) {
-        console.error('Session deduction failed:', (deductResult as { error?: string }).error);
-      }
-
-      // Update local state
-      setHistory((prev) => [checkInData as CheckIn, ...prev]);
-      setSubscription((prev) => prev ? { ...prev, remaining_sessions: prev.remaining_sessions - 1 } : null);
-
-      return { 
-        success: true, 
-        gym,
-        remainingSessions: sub.remaining_sessions - 1 
+      return {
+        success: true,
+        gym: result.gym,
+        remainingSessions: result.remaining_sessions,
       };
     } catch (err: any) {
       setError(err.message);
@@ -145,42 +85,22 @@ export const useCheckIn = () => {
 
   const checkIn = async (gymId: string, gymName: string, gymAddress?: string, gymCity?: string) => {
     if (!user || !session) return { success: false, error: 'Not authenticated' };
-    
-    // Check if already checked in today at this gym
-    const today = new Date().toDateString();
-    const existingCheckIn = history.find(
-      (c) => c.gym_id === gymId && new Date(c.check_in_time).toDateString() === today
-    );
-    
-    if (existingCheckIn) {
-      return { success: false, error: 'You have already checked in at this gym today!' };
-    }
-    
+
     setIsLoading(true);
     setError(null);
-    
-    try {
-      const { data, error: insertError } = await supabase
-        .from('check_ins')
-        .insert({
-          user_id: user.id,
-          gym_id: gymId,
-          gym_name: gymName,
-          gym_address: gymAddress || null,
-          gym_city: gymCity || null,
-          check_in_type: 'manual',
-          status: 'checkedIn',
-        })
-        .select()
-        .single();
 
-      if (insertError) {
-        throw new Error(insertError.message);
+    try {
+      const { data, error: rpcError } = await (supabase as any)
+        .rpc('manual_check_in', { p_gym_id: gymId });
+
+      if (rpcError) throw new Error(rpcError.message);
+      const result = data as { success: boolean; error?: string; remaining_sessions?: number };
+      if (!result?.success) {
+        return { success: false, error: result?.error || 'Check-in failed' };
       }
 
-      // Add to local history
-      setHistory((prev) => [data as CheckIn, ...prev]);
-      
+      setSubscription((prev) => prev ? { ...prev, remaining_sessions: result.remaining_sessions! } : prev);
+      await fetchHistory();
       return { success: true };
     } catch (err: any) {
       setError(err.message);
