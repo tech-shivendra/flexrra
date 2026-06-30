@@ -50,7 +50,6 @@ export interface Gym {
   image: string;
   gallery: string[];
   status: 'active' | 'inactive';
-  qr_code: string;
 }
 
 interface DbGym {
@@ -65,7 +64,6 @@ interface DbGym {
   amenities: string[] | null;
   phone: string | null;
   status: string;
-  qr_code: string;
 }
 
 interface DbGymImage {
@@ -103,7 +101,6 @@ const transformGym = (
     image: mainImage,
     gallery,
     status: dbGym.status as 'active' | 'inactive',
-    qr_code: dbGym.qr_code,
   };
 };
 
@@ -119,7 +116,7 @@ export const useGyms = () => {
     try {
       let query = supabase
         .from('gyms')
-        .select('*')
+        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, phone, status, created_at')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
@@ -164,7 +161,7 @@ export const useGyms = () => {
     try {
       const { data: gymData, error: gymError } = await supabase
         .from('gyms')
-        .select('*')
+        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, phone, status, created_at')
         .eq('id', id)
         .maybeSingle();
 

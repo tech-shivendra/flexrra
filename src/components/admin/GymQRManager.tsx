@@ -140,15 +140,11 @@ const GymQRManager = ({ gym, isOpen, onClose, onQRRegenerated }: GymQRManagerPro
     
     setIsRegenerating(true);
     try {
-      const newQRCode = crypto.randomUUID();
-      
-      const { error } = await supabase
-        .from('gyms')
-        .update({ qr_code: newQRCode })
-        .eq('id', gym.id);
-
+      const { data, error } = await (supabase as any)
+        .rpc('admin_regenerate_gym_qr', { p_gym_id: gym.id });
       if (error) throw error;
-      
+      const newQRCode = (data as { qr_code: string })?.qr_code;
+      if (!newQRCode) throw new Error('Failed to regenerate QR code');
       await generateQRCode(newQRCode);
       onQRRegenerated();
       toast.success('QR code regenerated successfully');

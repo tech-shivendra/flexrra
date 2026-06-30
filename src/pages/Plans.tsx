@@ -62,20 +62,17 @@ const Plans = () => {
     setCouponLoading(true);
     setCouponError('');
 
-    const { data, error } = await supabase
-      .from('coupons')
-      .select('code, discount_percent')
-      .eq('code', upperCode)
-      .eq('is_active', true)
-      .maybeSingle();
+    const { data, error } = await (supabase as any)
+      .rpc('validate_coupon', { p_code: upperCode });
 
     if (error) {
       console.error('Error validating coupon:', error);
       setCouponError('Failed to validate coupon');
       setAppliedCoupon(null);
-    } else if (data) {
-      setAppliedCoupon({ code: data.code, discount: data.discount_percent });
-      toast.success(`Coupon applied! ${data.discount_percent}% discount activated 🎉`);
+    } else if (data && Array.isArray(data) && data.length > 0) {
+      const row = data[0] as { code: string; discount_percent: number };
+      setAppliedCoupon({ code: row.code, discount: row.discount_percent });
+      toast.success(`Coupon applied! ${row.discount_percent}% discount activated 🎉`);
     } else {
       setAppliedCoupon(null);
       setCouponError('Invalid or expired coupon code');
