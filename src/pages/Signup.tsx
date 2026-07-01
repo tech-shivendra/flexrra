@@ -262,7 +262,7 @@ const Signup = () => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Min 6 characters"
+                    placeholder="8+ chars, upper, lower, number"
                     value={formData.password}
                     onChange={(e) => handleChange('password', e.target.value)}
                     className="h-11 pl-10"
