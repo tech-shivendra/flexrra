@@ -14,7 +14,12 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Please enter a valid email address').max(255),
   phone: z.string().regex(/^\d{10}$/, 'Phone number must be exactly 10 digits'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Include at least one uppercase letter')
+    .regex(/[a-z]/, 'Include at least one lowercase letter')
+    .regex(/[0-9]/, 'Include at least one number'),
   confirmPassword: z.string(),
   age: z.number().min(16, 'Must be at least 16 years old').max(100),
   gender: z.string().min(1, 'Please select a gender'),
@@ -85,7 +90,13 @@ const Signup = () => {
       toast.success('Account created successfully! Welcome to Flexrra!');
       navigate('/');
     } else {
-      toast.error(error || 'Signup failed');
+      const msg = error || 'Signup failed';
+      if (/weak|pwned|known to be/i.test(msg)) {
+        toast.error('This password is too common. Try a longer, unique password.');
+        setErrors({ password: 'Too common — try a longer, unique password' });
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
@@ -251,7 +262,7 @@ const Signup = () => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Min 6 characters"
+                    placeholder="8+ chars, upper, lower, number"
                     value={formData.password}
                     onChange={(e) => handleChange('password', e.target.value)}
                     className="h-11 pl-10"
