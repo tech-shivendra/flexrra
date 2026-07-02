@@ -104,7 +104,6 @@ const GymDetail = () => {
           "@context": "https://schema.org",
           "@type": "HealthClub",
           name: gym.name,
-          telephone: gym.phone,
           address: {
             "@type": "PostalAddress",
             streetAddress: gym.address,
@@ -247,18 +246,6 @@ const GymDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact */}
-            <div className="rounded-xl border border-border bg-card p-6">
-              <h2 className="mb-4 text-lg font-semibold text-foreground">Contact</h2>
-              <a
-                href={`tel:${gym.phone}`}
-                className="flex items-center gap-3 rounded-lg bg-accent px-4 py-3 transition-colors hover:bg-accent/80"
-              >
-                <Phone className="h-5 w-5 text-primary" />
-                <span className="font-medium text-foreground">{gym.phone}</span>
-              </a>
-            </div>
-
             {/* Gallery */}
             <div className="rounded-xl border border-border bg-card p-6">
               <h2 className="mb-4 text-lg font-semibold text-foreground">Gallery</h2>

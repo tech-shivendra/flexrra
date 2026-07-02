@@ -50,7 +50,6 @@ interface Gym {
   address: string;
   city: string;
   pincode: string | null;
-  phone: string | null;
   status: string;
   open_time: string;
   close_time: string;
@@ -58,6 +57,11 @@ interface Gym {
   facilities: string[];
   qr_code: string;
   created_at: string;
+}
+
+interface GymContact {
+  gym_id: string;
+  phone: string | null;
 }
 
 const AdminGyms = () => {
@@ -68,6 +72,7 @@ const AdminGyms = () => {
   const [editingGym, setEditingGym] = useState<Gym | null>(null);
   const [deleteGym, setDeleteGym] = useState<Gym | null>(null);
   const [qrManagerGym, setQrManagerGym] = useState<Gym | null>(null);
+  const [contacts, setContacts] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -88,6 +93,14 @@ const AdminGyms = () => {
       const { data, error } = await (supabase as any).rpc('admin_list_gyms');
       if (error) throw error;
       setGyms((data as Gym[]) || []);
+      const { data: contactRows } = await (supabase as any)
+        .from('gym_contacts')
+        .select('gym_id, phone');
+      const map: Record<string, string> = {};
+      ((contactRows as GymContact[]) || []).forEach((c) => {
+        if (c.phone) map[c.gym_id] = c.phone;
+      });
+      setContacts(map);
     } catch (error) {
       console.error('Error fetching gyms:', error);
       toast.error('Failed to fetch gyms');
@@ -129,12 +142,12 @@ const AdminGyms = () => {
       address: formData.address.trim(),
       city: formData.city.trim(),
       pincode: formData.pincode.trim() || null,
-      phone: formData.phone.trim() || null,
       open_time: formData.open_time,
       close_time: formData.close_time,
       amenities: formData.amenities.split(',').map(s => s.trim()).filter(Boolean),
       facilities: formData.facilities.split(',').map(s => s.trim()).filter(Boolean),
     };
+    const phoneValue = formData.phone.trim() || null;
 
     try {
       if (editingGym) {
@@ -144,10 +157,22 @@ const AdminGyms = () => {
           .eq('id', editingGym.id);
 
         if (error) throw error;
+        await (supabase as any)
+          .from('gym_contacts')
+          .upsert({ gym_id: editingGym.id, phone: phoneValue }, { onConflict: 'gym_id' });
         toast.success('Gym updated successfully');
       } else {
-        const { error } = await supabase.from('gyms').insert(gymData);
+        const { data: inserted, error } = await supabase
+          .from('gyms')
+          .insert(gymData)
+          .select('id')
+          .single();
         if (error) throw error;
+        if (inserted?.id && phoneValue) {
+          await (supabase as any)
+            .from('gym_contacts')
+            .upsert({ gym_id: inserted.id, phone: phoneValue }, { onConflict: 'gym_id' });
+        }
         toast.success('Gym created successfully');
       }
 
@@ -166,7 +191,7 @@ const AdminGyms = () => {
       address: gym.address,
       city: gym.city,
       pincode: gym.pincode || '',
-      phone: gym.phone || '',
+      phone: contacts[gym.id] || '',
       open_time: gym.open_time,
       close_time: gym.close_time,
       amenities: gym.amenities?.join(', ') || '',

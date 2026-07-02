@@ -46,7 +46,6 @@ export interface Gym {
   closeTime: string;
   facilities: string[];
   amenities: string[];
-  phone: string;
   image: string;
   gallery: string[];
   status: 'active' | 'inactive';
@@ -62,7 +61,6 @@ interface DbGym {
   close_time: string;
   facilities: string[] | null;
   amenities: string[] | null;
-  phone?: string | null;
   status: string;
 }
 
@@ -97,7 +95,6 @@ const transformGym = (
     closeTime: dbGym.close_time,
     facilities: dbGym.facilities || [],
     amenities: dbGym.amenities || [],
-    phone: dbGym.phone || '',
     image: mainImage,
     gallery,
     status: dbGym.status as 'active' | 'inactive',
