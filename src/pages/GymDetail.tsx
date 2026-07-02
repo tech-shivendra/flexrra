@@ -104,7 +104,6 @@ const GymDetail = () => {
           "@context": "https://schema.org",
           "@type": "HealthClub",
           name: gym.name,
-          telephone: gym.phone,
           address: {
             "@type": "PostalAddress",
             streetAddress: gym.address,
