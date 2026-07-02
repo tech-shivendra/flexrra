@@ -68,9 +68,9 @@ const QRScanner = ({ onScan, onError, isProcessing = false }: QRScannerProps) =>
     const instance = scannerRef.current;
     scannerRef.current = null;
     try {
-      // Only stop if actively scanning; guards against "Scanner is not running" errors.
-      // @ts-expect-error - getState is on the instance
-      if (typeof instance.getState === 'function' && instance.getState() === 2) {
+      const anyInstance = instance as unknown as { getState?: () => number };
+      // getState === 2 means "scanning" in html5-qrcode; only then can we stop safely.
+      if (typeof anyInstance.getState === 'function' && anyInstance.getState() === 2) {
         await instance.stop();
       }
       instance.clear();
