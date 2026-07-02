@@ -44,6 +44,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
+    // Auto-expire the user's subscription if past end_date so the profile
+    // status returned below reflects reality.
+    try {
+      await supabase.rpc('expire_my_subscription' as never);
+    } catch (err) {
+      console.warn('expire_my_subscription failed:', err);
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
