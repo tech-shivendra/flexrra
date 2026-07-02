@@ -116,7 +116,7 @@ export const useGyms = () => {
     try {
       let query = supabase
         .from('gyms')
-        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, phone, status, created_at')
+        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, status, created_at')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
@@ -161,7 +161,7 @@ export const useGyms = () => {
     try {
       const { data: gymData, error: gymError } = await supabase
         .from('gyms')
-        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, phone, status, created_at')
+        .select('id, name, address, city, pincode, open_time, close_time, facilities, amenities, status, created_at')
         .eq('id', id)
         .maybeSingle();
 
