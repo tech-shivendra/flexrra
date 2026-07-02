@@ -128,6 +128,35 @@ export type Database = {
         }
         Relationships: []
       }
+      gym_contacts: {
+        Row: {
+          created_at: string
+          gym_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gym_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gym_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_contacts_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gym_images: {
         Row: {
           created_at: string
@@ -171,7 +200,6 @@ export type Database = {
           id: string
           name: string
           open_time: string
-          phone: string | null
           pincode: string | null
           qr_code: string
           status: string
@@ -186,7 +214,6 @@ export type Database = {
           id?: string
           name: string
           open_time?: string
-          phone?: string | null
           pincode?: string | null
           qr_code?: string
           status?: string
@@ -201,7 +228,6 @@ export type Database = {
           id?: string
           name?: string
           open_time?: string
-          phone?: string | null
           pincode?: string | null
           qr_code?: string
           status?: string
@@ -396,7 +422,6 @@ export type Database = {
           id: string
           name: string
           open_time: string
-          phone: string | null
           pincode: string | null
           qr_code: string
           status: string
