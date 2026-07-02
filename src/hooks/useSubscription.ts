@@ -18,7 +18,11 @@ export const useSubscription = () => {
   useEffect(() => {
     const fetchSubscription = async () => {
       if (!user) return;
-      
+
+      // Auto-expire any subscription past its end_date before reading state.
+      await supabase.rpc('expire_my_subscription' as never);
+      await refreshProfile();
+
       const { data } = await supabase
         .from('subscriptions')
         .select('plan, pause_count, resumed_at')
@@ -34,7 +38,8 @@ export const useSubscription = () => {
     };
     
     fetchSubscription();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const getMaxPauses = (plan: string) => {
     return plan === 'annual' ? 3 : 1;
