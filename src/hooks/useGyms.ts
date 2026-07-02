@@ -62,7 +62,7 @@ interface DbGym {
   close_time: string;
   facilities: string[] | null;
   amenities: string[] | null;
-  phone: string | null;
+  phone?: string | null;
   status: string;
 }
 
