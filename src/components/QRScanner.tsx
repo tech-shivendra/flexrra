@@ -15,9 +15,13 @@ const QRScanner = ({ onScan, onError, isProcessing = false }: QRScannerProps) =>
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasScannedRef = useRef(false);
+  const isStoppingRef = useRef(false);
 
   const startScanner = async () => {
     if (!containerRef.current) return;
+    if (scannerRef.current) return; // already running
+    hasScannedRef.current = false;
 
     try {
       const html5QrCode = new Html5Qrcode('qr-reader');
@@ -31,7 +35,12 @@ const QRScanner = ({ onScan, onError, isProcessing = false }: QRScannerProps) =>
           aspectRatio: 1,
         },
         (decodedText) => {
-          // Stop scanning on successful decode
+          // Guard: html5-qrcode fires the success callback for every frame
+          // that decodes the QR until stop() resolves (async). Without this
+          // ref the camera stays open on mobile and triggers multiple
+          // check-ins in the same session.
+          if (hasScannedRef.current) return;
+          hasScannedRef.current = true;
           stopScanner();
           onScan(decodedText);
         },
@@ -44,22 +53,33 @@ const QRScanner = ({ onScan, onError, isProcessing = false }: QRScannerProps) =>
       setHasPermission(true);
     } catch (err: any) {
       console.error('Error starting scanner:', err);
+      scannerRef.current = null;
       setHasPermission(false);
       onError?.('Camera permission denied or not available');
     }
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
-      }
-      scannerRef.current = null;
+    if (!scannerRef.current || isStoppingRef.current) {
+      setIsScanning(false);
+      return;
     }
-    setIsScanning(false);
+    isStoppingRef.current = true;
+    const instance = scannerRef.current;
+    scannerRef.current = null;
+    try {
+      // Only stop if actively scanning; guards against "Scanner is not running" errors.
+      // @ts-expect-error - getState is on the instance
+      if (typeof instance.getState === 'function' && instance.getState() === 2) {
+        await instance.stop();
+      }
+      instance.clear();
+    } catch (err) {
+      console.error('Error stopping scanner:', err);
+    } finally {
+      isStoppingRef.current = false;
+      setIsScanning(false);
+    }
   };
 
   useEffect(() => {
