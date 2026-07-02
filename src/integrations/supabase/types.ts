@@ -435,6 +435,7 @@ export type Database = {
       }
       admin_regenerate_gym_qr: { Args: { p_gym_id: string }; Returns: Json }
       deduct_session: { Args: { p_subscription_id: string }; Returns: Json }
+      expire_my_subscription: { Args: never; Returns: Json }
       is_admin: { Args: { user_email: string }; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
       manual_check_in: { Args: { p_gym_id: string }; Returns: Json }
